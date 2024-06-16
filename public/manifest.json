@@ -32,7 +32,7 @@
       "32": "icons/icon.png"
     },
     "default_title": "Transformers.js",
-    "default_popup": "popup.html"
+    "default_popup": "index.html"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'"
