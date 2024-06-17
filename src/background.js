@@ -5,18 +5,18 @@ const gun = new Gun()
 const focus = gun.subscribe('trade')
 focus.on(async (node) => {
     if (typeof node === 'undefined' || typeof node === 'null') return
+    console.log(node)
     sendDataToPopup(JSON.parse(node).message)
 })
 
 // Function to send data to the popup
 function sendDataToPopup(data) {
+    console.log(data)
     chrome.runtime.sendMessage({ type: 'update', data: data })
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log(message)
     if (message.action !== 'send') return
-    console.log(message.text)
     gun.send(message.text)
     // // Run model prediction asynchronously
     // ;(async function () {
@@ -30,6 +30,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // return true to indicate we will send a response asynchronously
     // see https://stackoverflow.com/a/46628145 for more information
     return true
+})
+
+// Example: Listen for a specific event and perform an action
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === 'doInference') {
+        // Perform the desired action
+        console.log('Alarm triggered')
+        // Update the extension icon or perform other tasks
+        //   updateExtensionIcon();
+        // sendDataToPopup(Math.random().toString())
+        sendDataToPopup('Hello world!')
+    }
+})
+
+// Example: Set up a recurring alarm
+chrome.alarms.create('doInference', {
+    periodInMinutes: 1 // Trigger the alarm every 1 minute
 })
 
 // // Example: Send data to the popup every 5 seconds

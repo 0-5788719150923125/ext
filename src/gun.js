@@ -13,7 +13,7 @@ class Controller {
         this.gun = Gun({
             peers: ['wss://59.src.eco/gun', 'wss://95.src.eco/gun'],
             file: 'gun',
-            localStorage: false,
+            localStorage: true,
             radisk: false,
             axe: false
         })
