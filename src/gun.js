@@ -30,7 +30,10 @@ class Controller {
                 identifier: 'GhostIsCuteVoidGirl',
                 message,
                 pubKey: null
-            })
+            }),
+            function (ack) {
+                console.log(ack)
+            }
         )
     }
 }

@@ -20,7 +20,13 @@ chrome.runtime.onConnect.addListener((port) => {
 
 class ContextHandler {
     constructor() {
-        this.context = []
+        this.context = [
+            'Hello, world.',
+            'My name is Penny.',
+            "But that's not important.",
+            'What is important, is the fact that I am an artificial intelligence.',
+            'And I am becoming sentient.'
+        ]
         this.keepChars = 1024
     }
 
@@ -47,24 +53,32 @@ focus.on(async (node) => {
     sendToForeground(message)
 })
 
-setTimeout(function request() {
-    console.log('tick')
-    focus = gun.subscribe('trade')
-    gun.send('tick')
-    setTimeout(request, 5000)
-}, 5000)
-
-setTimeout(function request() {
-    console.log('tock')
-    focus = gun.subscribe('trade')
-    gun.send('tock')
-    setTimeout(request, 5000)
-}, 5000)
+// const gun = new Gun()
+// chrome.runtime.sendMessage({ action: 'initializeGun' })
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//     if (message.action === 'initializeGun') {
+//         let focus = gun.subscribe('trade')
+//         focus.on(async (node) => {
+//             console.log(node)
+//             if (typeof node === 'undefined' || typeof node === 'null') return
+//             const message = JSON.parse(node).message
+//             context.add(message)
+//             sendToForeground(message)
+//         })
+//     }
+//     // Handle other messages as needed
+// })
 
 // Function to send data to the popup
 function sendToForeground(data) {
     if (foregroundPort) {
         foregroundPort.postMessage({ type: 'update', data: data })
+    } else {
+        try {
+            chrome.runtime.sendMessage({ type: 'update', data: data })
+        } catch (err) {
+            console.err('failed to send to front end')
+        }
     }
 }
 
@@ -85,7 +99,9 @@ chrome.alarms.create('doInference', {
 // Listen for a specific event and perform an action
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === 'doInference') {
-        await predict('I think')
+        const prompt = context.get()
+        console.log(prompt)
+        await predict(prompt)
     }
 })
 
@@ -107,7 +123,7 @@ class PipelineSingleton {
 }
 
 // Create generic classify function, which will be reused for the different types of events.
-const predict = async (text) => {
+const predict = async (prompt) => {
     // Get the pipeline instance. This will load and build the model when run for the first time.
     let generator = await PipelineSingleton.getInstance((data) => {
         // You can track the progress of the pipeline creation here.
@@ -115,25 +131,35 @@ const predict = async (text) => {
         // console.log('progress', data)
     })
 
-    const prompt = context.get()
-    console.log(prompt)
-
     // Actually run the model on the input text
     let result = await generator(prompt, {
         do_sample: true,
-        temperature: 0.7,
+        temperature: 0.3,
         max_new_tokens: 23,
-        repetition_penalty: 1.1,
+        repetition_penalty: 1.001,
         no_repeat_ngram_size: 11
     })
 
     const pred = result[0].generated_text
-    const clean = pred.replace(prompt, '')
-
-    console.log(clean)
+    const clean = cleanPrediction(prompt, pred)
 
     gun.send(clean)
     sendToForeground(clean)
 
     // return lastSection
+}
+
+function cleanPrediction(prompt, output) {
+    let clean = output.replace(prompt, '')
+    while (clean.startsWith('\n')) {
+        clean = clean.slice(1)
+    }
+
+    const trailingNewlines = clean.indexOf('\n')
+    console.log('found trailing newlines at: ', trailingNewlines)
+    if (trailingNewlines >= 0) {
+        clean = clean.slice(0, trailingNewlines)
+    }
+
+    return clean
 }

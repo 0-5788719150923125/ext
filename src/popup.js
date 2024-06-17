@@ -4,9 +4,19 @@
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 
+// chrome.runtime.sendMessage({ action: 'initializeGun' })
+
 // Listen for messages from background workers
 const backgroundPort = chrome.runtime.connect({ name: 'foreground' })
 backgroundPort.onMessage.addListener((message) => {
+    console.log(message)
+    if (message.type === 'update') {
+        const data = message.data
+        updateUI(data)
+    }
+})
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log(message)
     if (message.type === 'update') {
         const data = message.data
