@@ -4,7 +4,7 @@
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 
-// chrome.runtime.sendMessage({ action: 'initializeGun' })
+chrome.runtime.sendMessage({ action: 'bootstrap' })
 
 // Listen for messages from background workers
 const backgroundPort = chrome.runtime.connect({ name: 'foreground' })
@@ -59,3 +59,49 @@ persistButton.addEventListener('click', () => {
         height: 500
     })
 })
+
+function isChromiumBased() {
+    const userAgent = navigator.userAgent.toLowerCase()
+    return userAgent.includes('chrome') || userAgent.includes('chromium')
+}
+
+function getRandomScreenPosition() {
+    const screenWidth = window.screen.availWidth
+    const screenHeight = window.screen.availHeight
+    const windowWidth = 400
+    const windowHeight = 500
+    const maxLeft = screenWidth - windowWidth
+    const maxTop = screenHeight - windowHeight
+
+    const left = Math.floor(Math.random() * maxLeft)
+    const top = Math.floor(Math.random() * maxTop)
+
+    return { left, top }
+}
+
+const desiredWindowCount = 3
+
+if (isChromiumBased()) {
+    chrome.windows.getAll({ populate: true }, (windows) => {
+        const extensionWindows = windows.filter((window) =>
+            window.tabs.some((tab) => tab.url.includes('chrome-extension://'))
+        )
+
+        const windowsToOpen = desiredWindowCount - extensionWindows.length
+
+        if (windowsToOpen > 0) {
+            for (let i = 0; i < windowsToOpen; i++) {
+                const { left, top } = getRandomScreenPosition()
+                chrome.windows.create({
+                    url: 'index.html',
+                    type: 'popup',
+                    focused: true,
+                    width: 400,
+                    height: 500,
+                    left,
+                    top
+                })
+            }
+        }
+    })
+}

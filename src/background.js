@@ -43,31 +43,32 @@ class ContextHandler {
 
 const context = new ContextHandler()
 
-const gun = new Gun()
-let focus = gun.subscribe('trade')
-focus.on(async (node) => {
-    console.log(node)
-    if (typeof node === 'undefined' || typeof node === 'null') return
-    const message = JSON.parse(node).message
-    context.add(message)
-    sendToForeground(message)
-})
-
 // const gun = new Gun()
-// chrome.runtime.sendMessage({ action: 'initializeGun' })
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//     if (message.action === 'initializeGun') {
-//         let focus = gun.subscribe('trade')
-//         focus.on(async (node) => {
-//             console.log(node)
-//             if (typeof node === 'undefined' || typeof node === 'null') return
-//             const message = JSON.parse(node).message
-//             context.add(message)
-//             sendToForeground(message)
-//         })
-//     }
-//     // Handle other messages as needed
+// let focus = gun.subscribe('trade')
+// focus.on(async (node) => {
+//     console.log(node)
+//     if (typeof node === 'undefined' || typeof node === 'null') return
+//     const message = JSON.parse(node).message
+//     context.add(message)
+//     sendToForeground(message)
 // })
+
+let gun
+// chrome.runtime.sendMessage({ action: 'initializeGun' })
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'bootstrap') {
+        gun = new Gun()
+        let focus = gun.subscribe('trade')
+        focus.on(async (node) => {
+            console.log(node)
+            if (typeof node === 'undefined' || typeof node === 'null') return
+            const message = JSON.parse(node).message
+            context.add(message)
+            sendToForeground(message)
+        })
+    }
+    createListeners()
+})
 
 // Function to send data to the popup
 function sendToForeground(data) {
@@ -82,28 +83,30 @@ function sendToForeground(data) {
     }
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action !== 'send') return
-    gun.send(message.text)
+function createListeners() {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.action !== 'send') return
+        gun.send(message.text)
 
-    // return true to indicate we will send a response asynchronously
-    // see https://stackoverflow.com/a/46628145 for more information
-    // return true
-})
+        // return true to indicate we will send a response asynchronously
+        // see https://stackoverflow.com/a/46628145 for more information
+        // return true
+    })
 
-// Set up a recurring prediction
-chrome.alarms.create('doInference', {
-    periodInMinutes: 1 // Trigger the alarm every 1 minute
-})
+    // Set up a recurring prediction
+    chrome.alarms.create('doInference', {
+        periodInMinutes: 1 // Trigger the alarm every 1 minute
+    })
 
-// Listen for a specific event and perform an action
-chrome.alarms.onAlarm.addListener(async (alarm) => {
-    if (alarm.name === 'doInference') {
-        const prompt = context.get()
-        console.log(prompt)
-        await predict(prompt)
-    }
-})
+    // Listen for a specific event and perform an action
+    chrome.alarms.onAlarm.addListener(async (alarm) => {
+        if (alarm.name === 'doInference') {
+            const prompt = context.get()
+            console.log(prompt)
+            await predict(prompt)
+        }
+    })
+}
 
 class PipelineSingleton {
     static task = 'text-generation'
@@ -156,7 +159,6 @@ function cleanPrediction(prompt, output) {
     }
 
     const trailingNewlines = clean.indexOf('\n')
-    console.log('found trailing newlines at: ', trailingNewlines)
     if (trailingNewlines >= 0) {
         clean = clean.slice(0, trailingNewlines)
     }
