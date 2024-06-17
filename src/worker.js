@@ -74,7 +74,7 @@ self.onmessage = async function (event) {
         })
 
         // Wait until there are no more tokens generated within 7000 ms
-        while (Date.now() - lastTokenTime < 7000) {
+        while (Date.now() - lastTokenTime < 3000) {
             await delay(1000)
         }
 

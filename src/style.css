@@ -99,17 +99,30 @@ body {
 }
 
 .icon-button {
-  background: white;
-  border: none;
-  cursor: pointer;
-  padding: 0;
+  position: relative;
+  display: inline-block;
+  width: 2em;
+  height: 2em;
 }
 
 .icon-button img {
-  width: 2em;
-  height: auto;
-  box-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px white, 0 0 20px white,
-    0 0 30px white, 0 0 40px white, 0 0 55px white, 0 0 75px white;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.icon-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('icons/icon.png') center/contain no-repeat;
+  filter: blur(5px) brightness(0) invert(1);
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 .right-align {
