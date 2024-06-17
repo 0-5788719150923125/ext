@@ -64,19 +64,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             if (typeof node === 'undefined' || typeof node === 'null') return
             const message = JSON.parse(node).message
             context.add(message)
-            sendToForeground(message)
+            sendToForeground('toOutputField', message)
         })
     }
     createListeners()
 })
 
 // Function to send data to the popup
-function sendToForeground(data) {
+function sendToForeground(type = 'toOutputField', data) {
     if (foregroundPort) {
-        foregroundPort.postMessage({ type: 'update', data: data })
+        foregroundPort.postMessage({ type, data })
     } else {
         try {
-            chrome.runtime.sendMessage({ type: 'update', data: data })
+            chrome.runtime.sendMessage({ type, data })
         } catch (err) {
             console.err('failed to send to front end')
         }
@@ -110,7 +110,8 @@ function createListeners() {
 
 class PipelineSingleton {
     static task = 'text-generation'
-    static model = 'Xenova/pythia-14m'
+    // static model = 'Xenova/pythia-14m'
+    static model = 'Xenova/pythia-31m'
     // static model = 'Xenova/llama2.c-stories15M'
     static instance = null
 
@@ -131,23 +132,38 @@ const predict = async (prompt) => {
     let generator = await PipelineSingleton.getInstance((data) => {
         // You can track the progress of the pipeline creation here.
         // e.g., you can send `data` back to the UI to indicate a progress bar
-        // console.log('progress', data)
+        console.log('progress', data)
     })
 
     // Actually run the model on the input text
-    let result = await generator(prompt, {
+    const result = await generator(prompt, {
         do_sample: true,
         temperature: 0.3,
         max_new_tokens: 23,
         repetition_penalty: 1.001,
-        no_repeat_ngram_size: 11
+        no_repeat_ngram_size: 11,
+        callback_function: async (beams) => {
+            const partial = generator.tokenizer.decode(
+                beams[0].output_token_ids,
+                {
+                    skip_special_tokens: true
+                }
+            )
+            const cleanedPartial = cleanPrediction(prompt, partial)
+            console.log(cleanedPartial)
+            sendToForeground('toInputField', cleanedPartial + '//:fold')
+            await new Promise((resolve) => {
+                requestAnimationFrame(resolve)
+            })
+        }
     })
 
     const pred = result[0].generated_text
     const clean = cleanPrediction(prompt, pred)
 
     gun.send(clean)
-    sendToForeground(clean)
+    sendToForeground('toInputField', '')
+    sendToForeground('toOutputField', clean)
 
     // return lastSection
 }

@@ -90,7 +90,7 @@ function drawAtom(x, y, z, text) {
     ctx.fillStyle = 'white'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(text, x, y + scaledRadius / 2)
+    // ctx.fillText(text, x, y + scaledRadius / 2)
 }
 
 function drawAtoms() {
@@ -371,7 +371,7 @@ async function cycleAtoms() {
                 x: startX,
                 y: startY,
                 z: startZ,
-                text: `${i}.`,
+                text: `${i}`,
                 targetX: startX,
                 targetY: startY
             }

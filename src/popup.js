@@ -9,18 +9,22 @@ chrome.runtime.sendMessage({ action: 'bootstrap' })
 // Listen for messages from background workers
 const backgroundPort = chrome.runtime.connect({ name: 'foreground' })
 backgroundPort.onMessage.addListener((message) => {
-    console.log(message)
-    if (message.type === 'update') {
+    if (message.type === 'toOutputField') {
         const data = message.data
-        updateUI(data)
+        updateOutputUI(data)
+    } else if (message.type === 'toInputField') {
+        const data = message.data
+        updateInputUI(data + '//:fold')
     }
 })
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log(message)
-    if (message.type === 'update') {
+    if (message.type === 'toOutputField') {
         const data = message.data
-        updateUI(data)
+        updateOutputUI(data)
+    } else if (message.type === 'toInputField') {
+        const data = message.data
+        updateInputUI(data)
     }
 })
 
@@ -40,12 +44,16 @@ inputElement.addEventListener('keydown', (event) => {
     // Clear the input
     event.target.value = ''
 
-    updateUI(message.text)
+    updateOutputUI(message.text)
 })
 
-// Generic function used to update the UI
-function updateUI(data) {
-    outputElement.innerText = data
+// Generic functions used to update the UI
+function updateOutputUI(string) {
+    outputElement.innerText = string
+}
+
+function updateInputUI(string) {
+    inputElement.value = string
 }
 
 // Pin the popup window
