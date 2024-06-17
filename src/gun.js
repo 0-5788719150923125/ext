@@ -20,7 +20,18 @@ class Controller {
     }
 
     subscribe(focus) {
-        return this.gun.get('src').get('bullets').get(focus)
+        this.focus = this.gun.get('src').get('bullets').get(focus)
+        return this.focus
+    }
+
+    send(message) {
+        this.focus.put(
+            JSON.stringify({
+                identifier: 'GhostIsCuteVoidGirl',
+                message,
+                pubKey: null
+            })
+        )
     }
 }
 

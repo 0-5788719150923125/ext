@@ -14,7 +14,7 @@ const config = {
         background: './src/background.js',
         popup: './src/popup.js',
         content: './src/content.js',
-        core: './src/core.js',
+        gun: './src/gun.js',
         atomic: './src/atomic.js'
     },
     output: {
