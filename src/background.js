@@ -1,59 +1,51 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
+import Gun from './gun.js'
 
-// Listen for the extension installation event
-chrome.runtime.onInstalled.addListener(() => {
-    // Perform any necessary setup or initialization
-    console.log('Extension installed')
+const gun = new Gun()
+const focus = gun.subscribe('trade')
+focus.on(async (node) => {
+    if (typeof node === 'undefined' || typeof node === 'null') return
+    sendDataToPopup(JSON.parse(node).message)
 })
 
-// Example: Listen for a specific event and perform an action
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === 'myAlarm') {
-        // Perform the desired action
-        console.log('Alarm triggered')
-        // Update the extension icon or perform other tasks
-        updateExtensionIcon()
-    }
-})
-
-// Example: Set up a recurring alarm
-chrome.alarms.create('myAlarm', {
-    periodInMinutes: 1 // Trigger the alarm every 1 minute
-})
-
-// Function to update the extension icon
-function updateExtensionIcon() {
-    // Retrieve data or perform calculations
-    const connectedPeers = getConnectedPeers()
-
-    // Update the extension icon
-    // chrome.action.setBadgeText({ text: connectedPeers.toString() })
-    console.log(connectedPeers)
-}
-
-// Function to get the number of connected peers (replace with your own logic)
-function getConnectedPeers() {
-    // Placeholder implementation
-    return Math.floor(Math.random() * 100)
+// Function to send data to the popup
+function sendDataToPopup(data) {
+    chrome.runtime.sendMessage({ type: 'update', data: data })
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('sender', sender)
-    if (message.action !== 'classify')
-        return // Ignore messages that are not meant for classification.
-        // Run model prediction asynchronously
-    ;(async function () {
-        // Perform classification
-        let result = await classify(message.text)
+    console.log(message)
+    if (message.action !== 'send') return
+    console.log(message.text)
+    gun.send(message.text)
+    // // Run model prediction asynchronously
+    // ;(async function () {
+    //     // Perform classification
+    //     let result = await classify(message.text)
 
-        // Send response back to UI
-        sendResponse(result)
-    })()
+    //     // Send response back to UI
+    //     sendResponse(result)
+    // })()
 
     // return true to indicate we will send a response asynchronously
     // see https://stackoverflow.com/a/46628145 for more information
     return true
 })
+
+// // Example: Send data to the popup every 5 seconds
+// setInterval(() => {
+//     const data = {
+//         connectedPeers: getConnectedPeers()
+//         // Other data you want to send
+//     }
+//     // sendDataToPopup(data.connectedPeers)
+// }, 5000)
+
+// // Function to get the number of connected peers (replace with your own logic)
+// function getConnectedPeers() {
+//     // Placeholder implementation
+//     return Math.floor(Math.random() * 100)
+// }
 
 // import { pipeline, env } from '@xenova/transformers'
 
