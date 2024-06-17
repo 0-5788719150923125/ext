@@ -43,7 +43,7 @@ class ClassifierSingleton {
 }
 
 // Create generic classify function, which will be reused for the different types of events.
-const classify = async (context) => {
+const classify = async (context, options) => {
     // Get the pipeline instance. This will load and build the model when run for the first time.
     let model = await ClassifierSingleton.getInstance((data) => {
         // You can track the progress of the pipeline creation here.
@@ -53,7 +53,7 @@ const classify = async (context) => {
 
     // Actually run the model on the input text
     let question = 'What is this conversation about?'
-    let result = await model(question, context)
+    let result = await model(question, context, options)
 
     return result
 }
@@ -72,12 +72,16 @@ self.onmessage = async function (event) {
         const { prompt, generatorOptions } = event.data
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
-        let output = await classify(prompt)
-        self.postMessage({
-            action: 'classification',
-            answer: output.answer,
-            score: output.score
-        })
+        let output = await classify(prompt, generatorOptions)
+        let answer = cleanPrediction(output.answer)
+
+        if (answer.length > 3) {
+            self.postMessage({
+                action: 'classification',
+                answer,
+                score: output.score
+            })
+        }
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let generator = await InferenceSingleton.getInstance((data) => {
@@ -100,8 +104,8 @@ self.onmessage = async function (event) {
                         skip_special_tokens: true
                     }
                 )
-                const cleanedPartial = cleanPrediction(prompt, partial)
-                if (cleanedPartial.length > 3) {
+                const cleanedPartial = cleanPrediction(partial, prompt)
+                if (cleanedPartial.length > 2) {
                     tokenCount++
                     const delay = tokenCount * 333
                     setTimeout(() => {
@@ -115,14 +119,14 @@ self.onmessage = async function (event) {
             }
         })
 
-        // Wait until there are no more tokens generated within 7000 ms
+        // Wait until there are no more tokens generated within 3000 ms
         while (Date.now() - lastTokenTime < 3000) {
             await delay(1000)
         }
 
         const pred = result[0].generated_text
-        const clean = cleanPrediction(prompt, pred)
-        if (clean.length > 3) {
+        const clean = cleanPrediction(pred, prompt)
+        if (clean.length > 2) {
             self.postMessage({ status: 'complete', output: clean })
         }
     } catch (err) {
@@ -132,7 +136,7 @@ self.onmessage = async function (event) {
     isRunning = false
 }
 
-function cleanPrediction(prompt, output) {
+function cleanPrediction(output, prompt = '') {
     let clean = output.replace(prompt, '')
     while (clean.startsWith('\n')) {
         clean = clean.slice(1)
@@ -141,6 +145,21 @@ function cleanPrediction(prompt, output) {
     const trailingNewlines = clean.indexOf('\n')
     if (trailingNewlines >= 0) {
         clean = clean.slice(0, trailingNewlines)
+    }
+
+    if ((clean.split(`"`).length - 1) % 2 !== 0) {
+        if (clean.endsWith(`"`)) {
+            clean = clean.slice(0, -1)
+        }
+    }
+
+    while (clean.startsWith('¶') || clean.startsWith(' ')) {
+        clean = clean.slice(1)
+    }
+
+    let pilcrowIndex = clean.indexOf('¶')
+    if (pilcrowIndex >= 0) {
+        clean = clean.slice(0, pilcrowIndex).trim()
     }
 
     return clean
