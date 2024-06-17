@@ -1,15 +1,6 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
 
-// import Gun from './core.js'
 import { pipeline, env } from '@xenova/transformers'
-
-// console.log('hello world')
-
-// const gun = new Gun()
-// const focus = gun.subscribe('trade')
-// focus.on(async (node) => {
-//     console.log(node)
-// })
 
 // Skip initial check for local models, since we are not loading any local models.
 env.allowLocalModels = false
