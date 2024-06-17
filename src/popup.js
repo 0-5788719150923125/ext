@@ -3,6 +3,7 @@
 
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
+const topicElement = document.getElementById('topic')
 
 chrome.runtime.sendMessage({ action: 'bootstrap' })
 
@@ -19,6 +20,9 @@ backgroundPort.onMessage.addListener((message) => {
         inputElement.classList.add('right-align')
     } else if (message.type === 'floatLeft') {
         inputElement.classList.remove('right-align')
+    } else if (message.type === 'toTopic') {
+        const data = message.data
+        updateTopicUI(data)
     }
 })
 
@@ -33,6 +37,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         inputElement.classList.add('right-align')
     } else if (message.type === 'floatLeft') {
         inputElement.classList.remove('right-align')
+    } else if (message.type === 'toTopic') {
+        const data = message.data
+        updateTopicUI(data)
     }
 })
 
@@ -62,6 +69,10 @@ function updateOutputUI(string) {
 
 function updateInputUI(string) {
     inputElement.value = string
+}
+
+function updateTopicUI(string) {
+    topicElement.innerText = string
 }
 
 // Pin the popup window

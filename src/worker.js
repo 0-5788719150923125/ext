@@ -6,7 +6,7 @@ env.backends.onnx.wasm.numThreads = 1
 env.allowLocalModels = false
 
 // Use the Singleton pattern to enable lazy construction of the pipeline.
-class PipelineSingleton {
+class InferenceSingleton {
     static task = 'text-generation'
     // static model = 'Xenova/pythia-14m'
     static model = 'Xenova/pythia-31m'
@@ -24,6 +24,40 @@ class PipelineSingleton {
     }
 }
 
+class ClassifierSingleton {
+    static task = 'question-answering'
+    // static model = 'Xenova/pythia-14m'
+    static model = 'Xenova/distilbert-base-uncased-distilled-squad'
+    // static model = 'Xenova/llama2.c-stories15M'
+    static instance = null
+
+    static async getInstance(progress_callback = null) {
+        if (this.instance === null) {
+            this.instance = pipeline(this.task, this.model, {
+                progress_callback
+            })
+        }
+
+        return this.instance
+    }
+}
+
+// Create generic classify function, which will be reused for the different types of events.
+const classify = async (context) => {
+    // Get the pipeline instance. This will load and build the model when run for the first time.
+    let model = await ClassifierSingleton.getInstance((data) => {
+        // You can track the progress of the pipeline creation here.
+        // e.g., you can send `data` back to the UI to indicate a progress bar
+        // console.log('progress', data)
+    })
+
+    // Actually run the model on the input text
+    let question = 'What is this conversation about?'
+    let result = await model(question, context)
+
+    return result
+}
+
 const delay = (ms) => new Promise((res) => setTimeout(res, ms))
 
 let tokenCount = 0
@@ -35,14 +69,22 @@ self.onmessage = async function (event) {
     if (event.data.action !== 'inference') return
     isRunning = true
     try {
+        const { prompt, generatorOptions } = event.data
+
         // Get the pipeline instance. This will load and build the model when run for the first time.
-        let generator = await PipelineSingleton.getInstance((data) => {
+        let output = await classify(prompt)
+        self.postMessage({
+            action: 'classification',
+            answer: output.answer,
+            score: output.score
+        })
+
+        // Get the pipeline instance. This will load and build the model when run for the first time.
+        let generator = await InferenceSingleton.getInstance((data) => {
             // You can track the progress of the pipeline creation here.
             // e.g., you can send `data` back to the UI to indicate a progress bar
             self.postMessage(data)
         })
-
-        const { prompt, generatorOptions } = event.data
 
         // Reset the token count and last token time for each new inference
         tokenCount = 0

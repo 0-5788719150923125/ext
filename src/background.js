@@ -82,13 +82,14 @@ function createListeners() {
     })
 
     inferenceWorker.onmessage = async (event) => {
-        // console.log(event.data)
-        if (event.data.status === 'partial') {
+        if (event.data.action === 'classification') {
+            if (event.data.score > 0.15) {
+                sendToForeground('toTopic', event.data.answer)
+            }
+        } else if (event.data.status === 'partial') {
             sendToForeground('floatRight')
             sendToForeground('toInputField', event.data.input)
         } else if (event.data.status === 'complete') {
-            // sendToForeground('toInputField', '')
-            // sendToForeground('floatLeft')
             sendToForeground('toOutputField', event.data.output)
             gun.send(event.data.output)
         } else if (event.data.action === 'cleanup') {
@@ -114,12 +115,9 @@ function createListeners() {
     // Listen for a specific event and perform an action
     chrome.alarms.onAlarm.addListener(async (alarm) => {
         if (alarm.name === 'doInference') {
-            const prompt = context.get()
-            console.log(prompt)
-            // await predict(prompt)
             inferenceWorker.postMessage({
                 action: 'inference',
-                prompt: prompt,
+                prompt: context.get(),
                 generatorOptions: {
                     do_sample: true,
                     temperature: 0.3,
