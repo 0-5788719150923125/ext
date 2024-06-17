@@ -28,6 +28,7 @@ const delay = (ms) => new Promise((res) => setTimeout(res, ms))
 
 let tokenCount = 0
 let isRunning = false
+let lastTokenTime = 0
 
 self.onmessage = async function (event) {
     if (isRunning) return
@@ -43,9 +44,9 @@ self.onmessage = async function (event) {
 
         const { prompt, generatorOptions } = event.data
 
-        // Reset the token count for each new inference
+        // Reset the token count and last token time for each new inference
         tokenCount = 0
-        let accumulatedDelay = 0
+        lastTokenTime = Date.now()
 
         // Actually run the model on the input text
         const result = await generator(prompt, {
@@ -61,35 +62,31 @@ self.onmessage = async function (event) {
                 if (cleanedPartial.length > 3) {
                     tokenCount++
                     const delay = tokenCount * 333
-                    accumulatedDelay += delay
                     setTimeout(() => {
                         self.postMessage({
                             status: 'partial',
                             input: cleanedPartial + '//:fold'
                         })
+                        lastTokenTime = Date.now()
                     }, delay)
                 }
             }
         })
 
-        await delay(11000)
+        // Wait until there are no more tokens generated within 7000 ms
+        while (Date.now() - lastTokenTime < 7000) {
+            await delay(1000)
+        }
+
         const pred = result[0].generated_text
         const clean = cleanPrediction(prompt, pred)
         if (clean.length > 3) {
             self.postMessage({ status: 'complete', output: clean })
         }
-
-        let i = 0
-        while (i < 5) {
-            self.postMessage({ action: 'cleanup' })
-            await delay(3000)
-            i++
-        }
     } catch (err) {
-        console.error(err)
         self.postMessage(err)
-        self.postMessage({ action: 'cleanup' })
     }
+    self.postMessage({ action: 'cleanup' })
     isRunning = false
 }
 
