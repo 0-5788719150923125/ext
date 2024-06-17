@@ -84,33 +84,50 @@ function createOffscreenDocument() {
             return
         }
 
-        chrome.offscreen.createDocument(
-            {
-                url: 'offscreen.html',
-                reasons: ['BLOBS'],
-                justification: 'To create a web worker'
-            },
-            (document) => {
-                offscreenDocument = document
-                offscreenDocumentCreated = true
-                resolve(offscreenDocument)
-            }
-        )
+        if (chrome.offscreen) {
+            chrome.offscreen.createDocument(
+                {
+                    url: 'offscreen.html',
+                    reasons: ['BLOBS'],
+                    justification: 'To create a web worker'
+                },
+                (document) => {
+                    offscreenDocument = document
+                    offscreenDocumentCreated = true
+                    resolve(offscreenDocument)
+                }
+            )
+        } else {
+            // Fallback for browsers without chrome.offscreen support (e.g., Firefox)
+            offscreenDocumentCreated = true
+            resolve(null)
+        }
     })
 }
 
-// Function to send a message to the off-screen document
+// Function to send a message to the off-screen document (Chrome Manifest V3)
 async function sendMessageToOffscreen(data) {
-    try {
-        if (!offscreenDocument) {
-            offscreenDocument = await createOffscreenDocument()
-        }
-    } catch (err) {
-        console.error(err)
+    if (!offscreenDocument) {
+        offscreenDocument = await createOffscreenDocument()
     }
 
-    // if (offscreenDocument) {
-    chrome.runtime.sendMessage({ action: 'createWorker', data })
+    if (offscreenDocument) {
+        chrome.runtime.sendMessage({ action: 'createWorker', data })
+    } else {
+        // Fallback for browsers without chrome.offscreen support (e.g., Firefox)
+        inferenceWorker.postMessage(data)
+    }
+}
+
+// Create the web worker (Firefox and other browsers)
+let inferenceWorker
+if (!chrome.offscreen) {
+    inferenceWorker = new Worker(new URL('worker.js', import.meta.url), {
+        type: 'module'
+    })
+    // inferenceWorker.onmessage = (event) => {
+    //     // Handle messages from the worker
+    //     console.log('Message from worker:', event.data)
     // }
 }
 
@@ -140,29 +157,31 @@ function createListeners() {
         // return true
     })
 
-    // inferenceWorker.onmessage = async (event) => {
-    //     if (event.data.action === 'classification') {
-    //         sendToForeground('toTopic', event.data.answer)
-    //     } else if (event.data.status === 'partial') {
-    //         sendToForeground('floatRight')
-    //         sendToForeground('toInputField', event.data.input)
-    //     } else if (event.data.status === 'complete') {
-    //         sendToForeground('toOutputField', event.data.output)
-    //         gun.send(event.data.output)
-    //     } else if (event.data.action === 'cleanup') {
-    //         sendToForeground('toInputField', '')
-    //         sendToForeground('floatLeft')
-    //     } else if (
-    //         !['progress', 'ready', 'done', 'download', 'initiate'].includes(
-    //             event.data.status
-    //         )
-    //     ) {
-    //         console.log(event)
-    //     } else {
-    //         sendToForeground('toInputField', '')
-    //         sendToForeground('floatLeft')
-    //     }
-    // }
+    if (!chrome.offscreen) {
+        inferenceWorker.onmessage = async (event) => {
+            if (event.data.action === 'classification') {
+                sendToForeground('toTopic', event.data.answer)
+            } else if (event.data.status === 'partial') {
+                sendToForeground('floatRight')
+                sendToForeground('toInputField', event.data.input)
+            } else if (event.data.status === 'complete') {
+                sendToForeground('toOutputField', event.data.output)
+                gun.send(event.data.output)
+            } else if (event.data.action === 'cleanup') {
+                sendToForeground('toInputField', '')
+                sendToForeground('floatLeft')
+            } else if (
+                !['progress', 'ready', 'done', 'download', 'initiate'].includes(
+                    event.data.status
+                )
+            ) {
+                console.log(event)
+            } else {
+                sendToForeground('toInputField', '')
+                sendToForeground('floatLeft')
+            }
+        }
+    }
 
     // Set up a recurring prediction
     chrome.alarms.create('doInference', {
@@ -183,17 +202,19 @@ function createListeners() {
                     no_repeat_ngram_size: 11
                 }
             })
-            // inferenceWorker.postMessage({
-            //     action: 'inference',
-            //     prompt: context.get(),
-            //     generatorOptions: {
-            //         do_sample: true,
-            //         temperature: 0.3,
-            //         max_new_tokens: 23,
-            //         repetition_penalty: 1.001,
-            //         no_repeat_ngram_size: 11
-            //     }
-            // })
+            if (!chrome.offscreen) {
+                inferenceWorker.postMessage({
+                    action: 'inference',
+                    prompt: context.get(),
+                    generatorOptions: {
+                        do_sample: true,
+                        temperature: 0.3,
+                        max_new_tokens: 23,
+                        repetition_penalty: 1.001,
+                        no_repeat_ngram_size: 11
+                    }
+                })
+            }
         }
     })
 }
