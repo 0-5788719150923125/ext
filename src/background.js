@@ -75,47 +75,51 @@ function sendToForeground(type, data) {
 
 let offscreenDocument = null
 let offscreenDocumentCreated = false
+let creatingOffscreenDocument = false
 
 // Function to create the off-screen document
-function createOffscreenDocument() {
-    return new Promise((resolve, reject) => {
-        if (offscreenDocumentCreated) {
-            resolve(offscreenDocument)
-            return
-        }
-
-        if (chrome.offscreen) {
-            chrome.offscreen.createDocument(
-                {
-                    url: 'offscreen.html',
-                    reasons: ['BLOBS'],
-                    justification: 'To create a web worker'
-                },
-                (document) => {
-                    offscreenDocument = document
-                    offscreenDocumentCreated = true
+async function createOffscreenDocument() {
+    if (offscreenDocumentCreated || creatingOffscreenDocument) {
+        return new Promise((resolve) => {
+            const checkOffscreenDocument = () => {
+                if (offscreenDocumentCreated) {
                     resolve(offscreenDocument)
+                } else {
+                    setTimeout(checkOffscreenDocument, 100)
                 }
-            )
-        } else {
-            // Fallback for browsers without chrome.offscreen support (e.g., Firefox)
-            offscreenDocumentCreated = true
-            resolve(null)
-        }
+            }
+            checkOffscreenDocument()
+        })
+    }
+
+    creatingOffscreenDocument = true
+
+    return new Promise((resolve, reject) => {
+        chrome.offscreen.createDocument(
+            {
+                url: 'offscreen.html',
+                reasons: ['BLOBS'],
+                justification: 'To create a web worker'
+            },
+            (document) => {
+                offscreenDocument = document
+                offscreenDocumentCreated = true
+                creatingOffscreenDocument = false
+                resolve(offscreenDocument)
+            }
+        )
     })
 }
 
 // Function to send a message to the off-screen document (Chrome Manifest V3)
 async function sendMessageToOffscreen(data) {
-    if (!offscreenDocument) {
-        offscreenDocument = await createOffscreenDocument()
-    }
-
-    if (offscreenDocument) {
+    try {
+        if (!offscreenDocument) {
+            offscreenDocument = await createOffscreenDocument()
+        }
         chrome.runtime.sendMessage({ action: 'createWorker', data })
-    } else {
-        // Fallback for browsers without chrome.offscreen support (e.g., Firefox)
-        inferenceWorker.postMessage(data)
+    } catch (err) {
+        console.error(err)
     }
 }
 
@@ -125,24 +129,7 @@ if (!chrome.offscreen) {
     inferenceWorker = new Worker(new URL('worker.js', import.meta.url), {
         type: 'module'
     })
-    // inferenceWorker.onmessage = (event) => {
-    //     // Handle messages from the worker
-    //     console.log('Message from worker:', event.data)
-    // }
 }
-
-// Function to send a message to the off-screen document
-// function sendMessageToOffscreen(data) {
-//     if (offscreenDocument) {
-//         chrome.runtime.sendMessage({ action: 'createWorker', data })
-//     }
-// }
-
-// // Listen for messages from the off-screen document
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//     // Handle messages from the worker
-//     console.log('Message from worker:', message)
-// })
 
 function createListeners() {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -190,7 +177,21 @@ function createListeners() {
 
     // Listen for a specific event and perform an action
     chrome.alarms.onAlarm.addListener(async (alarm) => {
-        if (alarm.name === 'doInference') {
+        // if (alarm.name === 'doInference') {
+
+        if (!chrome.offscreen) {
+            inferenceWorker.postMessage({
+                action: 'inference',
+                prompt: context.get(),
+                generatorOptions: {
+                    do_sample: true,
+                    temperature: 0.3,
+                    max_new_tokens: 23,
+                    repetition_penalty: 1.001,
+                    no_repeat_ngram_size: 11
+                }
+            })
+        } else {
             sendMessageToOffscreen({
                 action: 'inference',
                 prompt: context.get(),
@@ -202,19 +203,6 @@ function createListeners() {
                     no_repeat_ngram_size: 11
                 }
             })
-            if (!chrome.offscreen) {
-                inferenceWorker.postMessage({
-                    action: 'inference',
-                    prompt: context.get(),
-                    generatorOptions: {
-                        do_sample: true,
-                        temperature: 0.3,
-                        max_new_tokens: 23,
-                        repetition_penalty: 1.001,
-                        no_repeat_ngram_size: 11
-                    }
-                })
-            }
         }
     })
 }
