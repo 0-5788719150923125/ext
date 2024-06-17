@@ -16,7 +16,8 @@ const config = {
         content: './src/content.js',
         gun: './src/gun.js',
         atomic: './src/atomic.js',
-        worker: './src/worker.js'
+        worker: './src/worker.js',
+        offscreen: './src/offscreen.js'
     },
     output: {
         path: path.resolve(__dirname, `dist/${browser}`),
