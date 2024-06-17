@@ -181,9 +181,80 @@ let activeSynapseLines = []
 let synapseLines = []
 let frameCount = 0
 
-function animateAtoms() {
-    requestAnimationFrame(animateAtoms)
-    drawAtoms()
+let lastFrameTime = 0
+
+function animateAtoms(currentTime) {
+    const deltaTime = currentTime - lastFrameTime
+    lastFrameTime = currentTime
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw synapse lines first (behind atoms)
+    activeSynapseLines.forEach(({ atom1, atom2 }) => {
+        drawSynapseLine(atom1, atom2)
+    })
+
+    Object.entries(heads).forEach(([i, value]) => {
+        let repulsionX = 0
+        let repulsionY = 0
+
+        Object.entries(heads).forEach(([j, value]) => {
+            if (i !== j) {
+                const otherAtom = heads[j]
+                const distanceX = heads[i].x - otherAtom.x
+                const distanceY = heads[i].y - otherAtom.y
+                const distanceZ = heads[i].z - otherAtom.z
+                const distance = Math.sqrt(
+                    distanceX * distanceX +
+                        distanceY * distanceY +
+                        distanceZ * distanceZ
+                )
+
+                const buffer = bias
+                if (distance < baseRadius * 2 + buffer) {
+                    const force = Math.max(
+                        buffer,
+                        (baseRadius * 2 - distance) / 5
+                    )
+                    const repulsionForce = force * damping
+                    repulsionX += (repulsionForce * distanceX) / distance
+                    repulsionY += (repulsionForce * distanceY) / distance
+                }
+            }
+        })
+
+        const moveResult = moveAtomLinear(
+            heads[i].x,
+            heads[i].y,
+            heads[i].targetX,
+            heads[i].targetY,
+            damping
+        )
+        heads[i].x = moveResult.x + repulsionX
+        heads[i].y = moveResult.y + repulsionY
+
+        heads[i].x = Math.max(
+            baseRadius,
+            Math.min(heads[i].x, canvas.width - baseRadius)
+        )
+        heads[i].y = Math.max(
+            baseRadius,
+            Math.min(heads[i].y, canvas.height - baseRadius)
+        )
+
+        drawAtom(heads[i].x, heads[i].y, heads[i].z, heads[i].text)
+
+        if (
+            Math.abs(heads[i].x - heads[i].targetX) <= tolerance &&
+            Math.abs(heads[i].y - heads[i].targetY) <= tolerance
+        ) {
+            heads[i].targetX =
+                Math.random() * (canvas.width - baseRadius * 2) + baseRadius
+            heads[i].targetY =
+                Math.random() * (canvas.height - baseRadius * 2) + baseRadius
+        }
+    })
 
     // Draw active synapse lines
     activeSynapseLines.forEach(({ atom1, atom2 }) => {
@@ -236,6 +307,9 @@ function animateAtoms() {
             drawSynapseLine(atom1, atom2) // Pass atom objects
         })
     }
+
+    // Request the next animation frame
+    requestAnimationFrame(animateAtoms)
 }
 
 // Function to calculate the SILU (Sigmoid-weighted Linear Unit) function
@@ -301,69 +375,8 @@ async function cycleAtoms() {
     tails = { ...heads }
     heads = atoms
 
-    Object.entries(heads).forEach(([i, value]) => {
-        let repulsionX = 0
-        let repulsionY = 0
-
-        Object.entries(heads).forEach(([j, value]) => {
-            if (i !== j) {
-                const otherAtom = heads[j]
-                const distanceX = heads[i].x - otherAtom.x
-                const distanceY = heads[i].y - otherAtom.y
-                const distanceZ = heads[i].z - otherAtom.z
-                const distance = Math.sqrt(
-                    distanceX * distanceX +
-                        distanceY * distanceY +
-                        distanceZ * distanceZ
-                )
-
-                const buffer = bias
-                if (distance < baseRadius * 2 + buffer) {
-                    const force = Math.max(
-                        buffer,
-                        (baseRadius * 2 - distance) / 5
-                    )
-                    const repulsionForce = force * repulsionStrength
-                    repulsionX += (repulsionForce * distanceX) / distance
-                    repulsionY += (repulsionForce * distanceY) / distance
-                }
-            }
-        })
-
-        const moveResult = moveAtomLinear(
-            heads[i].x,
-            heads[i].y,
-            heads[i].targetX,
-            heads[i].targetY,
-            damping
-        )
-        heads[i].x = moveResult.x + repulsionX
-        heads[i].y = moveResult.y + repulsionY
-
-        heads[i].x = Math.max(
-            baseRadius,
-            Math.min(heads[i].x, canvas.width - baseRadius)
-        )
-        heads[i].y = Math.max(
-            baseRadius,
-            Math.min(heads[i].y, canvas.height - baseRadius)
-        )
-
-        drawAtom(heads[i].x, heads[i].y, heads[i].z, heads[i].text)
-
-        if (
-            Math.abs(heads[i].x - heads[i].targetX) <= tolerance &&
-            Math.abs(heads[i].y - heads[i].targetY) <= tolerance
-        ) {
-            heads[i].targetX =
-                Math.random() * (canvas.width - baseRadius * 2) + baseRadius
-            heads[i].targetY =
-                Math.random() * (canvas.height - baseRadius * 2) + baseRadius
-        }
-    })
-
     await delay(6000)
-    await cycleAtoms()
+    cycleAtoms()
 }
 
 animateAtoms()
