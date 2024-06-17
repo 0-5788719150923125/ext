@@ -82,13 +82,13 @@ function createListeners() {
     })
 
     inferenceWorker.onmessage = async (event) => {
-        console.log(event.data)
+        // console.log(event.data)
         if (event.data.status === 'partial') {
             sendToForeground('floatRight')
             sendToForeground('toInputField', event.data.input)
         } else if (event.data.status === 'complete') {
-            sendToForeground('toInputField', '')
-            sendToForeground('floatLeft')
+            // sendToForeground('toInputField', '')
+            // sendToForeground('floatLeft')
             sendToForeground('toOutputField', event.data.output)
             gun.send(event.data.output)
         } else if (event.data.action === 'cleanup') {

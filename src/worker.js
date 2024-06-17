@@ -45,6 +45,7 @@ self.onmessage = async function (event) {
 
         // Reset the token count for each new inference
         tokenCount = 0
+        let accumulatedDelay = 0
 
         // Actually run the model on the input text
         const result = await generator(prompt, {
@@ -60,6 +61,7 @@ self.onmessage = async function (event) {
                 if (cleanedPartial.length > 3) {
                     tokenCount++
                     const delay = tokenCount * 333
+                    accumulatedDelay += delay
                     setTimeout(() => {
                         self.postMessage({
                             status: 'partial',
@@ -70,16 +72,19 @@ self.onmessage = async function (event) {
             }
         })
 
-        // Calculate the total delay for the complete output
-        const totalDelay = (tokenCount + 1) * 3000
-        setTimeout(() => {
-            const pred = result[0].generated_text
-            const clean = cleanPrediction(prompt, pred)
-            if (clean.length > 3) {
-                self.postMessage({ status: 'complete', output: clean })
-            }
+        await delay(11000)
+        const pred = result[0].generated_text
+        const clean = cleanPrediction(prompt, pred)
+        if (clean.length > 3) {
+            self.postMessage({ status: 'complete', output: clean })
+        }
+
+        let i = 0
+        while (i < 5) {
             self.postMessage({ action: 'cleanup' })
-        }, totalDelay)
+            await delay(3000)
+            i++
+        }
     } catch (err) {
         console.error(err)
         self.postMessage(err)
