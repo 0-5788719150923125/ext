@@ -15,7 +15,8 @@ const config = {
         popup: './src/popup.js',
         content: './src/content.js',
         gun: './src/gun.js',
-        atomic: './src/atomic.js'
+        atomic: './src/atomic.js',
+        worker: './src/worker.js'
     },
     output: {
         path: path.resolve(__dirname, `dist/${browser}`),
