@@ -111,3 +111,8 @@ body {
   box-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px white, 0 0 20px white,
     0 0 30px white, 0 0 40px white, 0 0 55px white, 0 0 75px white;
 }
+
+.right-align {
+  text-align: right;
+  direction: rtl;
+}

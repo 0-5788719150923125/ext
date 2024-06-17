@@ -14,7 +14,9 @@ backgroundPort.onMessage.addListener((message) => {
         updateOutputUI(data)
     } else if (message.type === 'toInputField') {
         const data = message.data
-        updateInputUI(data + '//:fold')
+        updateInputUI(data)
+    } else if (message.type === 'resetInput') {
+        inputElement.classList.remove('right-align')
     }
 })
 
@@ -25,6 +27,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.type === 'toInputField') {
         const data = message.data
         updateInputUI(data)
+    } else if (message.type === 'resetInput') {
+        inputElement.classList.remove('right-align')
     }
 })
 
@@ -53,6 +57,7 @@ function updateOutputUI(string) {
 }
 
 function updateInputUI(string) {
+    inputElement.classList.add('right-align')
     inputElement.value = string
 }
 
