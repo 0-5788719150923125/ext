@@ -71,6 +71,7 @@ const inferenceWorker = new Worker(new URL('worker.js', import.meta.url), {
     type: 'module'
 })
 
+let firstRun = true
 function createListeners() {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.action !== 'send') return
@@ -83,8 +84,9 @@ function createListeners() {
 
     inferenceWorker.onmessage = async (event) => {
         if (event.data.action === 'classification') {
-            if (event.data.score > 0.15) {
+            if (event.data.score > 0.15 || firstRun) {
                 sendToForeground('toTopic', event.data.answer)
+                firstRun = false
             }
         } else if (event.data.status === 'partial') {
             sendToForeground('floatRight')
