@@ -1,7 +1,7 @@
 {
   "name": "ext",
   "version": "0.0.1",
-  "description": "EXT | Feed The Machine",
+  "description": "Link | Feed The Machine",
   "scripts": {
     "build:chromium": "webpack --node-env chromium",
     "build:firefox": "webpack --node-env firefox",

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "EXT",
+  "name": "Link",
   "description": "Feed The Machine",
   "version": "0.0.1",
   "permissions": [
@@ -41,7 +41,7 @@
       "24": "icons/icon.png",
       "32": "icons/icon.png"
     },
-    "default_title": "Transformers.js",
+    "default_title": "Link",
     "default_popup": "index.html"
   },
   "content_security_policy": {

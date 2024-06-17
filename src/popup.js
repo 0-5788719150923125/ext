@@ -4,6 +4,16 @@
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 
+// Listen for messages from background workers
+const backgroundPort = chrome.runtime.connect({ name: 'foreground' })
+backgroundPort.onMessage.addListener((message) => {
+    console.log(message)
+    if (message.type === 'update') {
+        const data = message.data
+        updateUI(data)
+    }
+})
+
 // Listen for changes made to the input box.
 inputElement.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter') return
@@ -21,15 +31,6 @@ inputElement.addEventListener('keydown', (event) => {
     event.target.value = ''
 
     updateUI(message.text)
-})
-
-// Listen for messages from background workers
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log(message)
-    if (message.type === 'update') {
-        const data = message.data
-        updateUI(data)
-    }
 })
 
 // Generic function used to update the UI

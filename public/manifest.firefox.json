@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "EXT",
+  "name": "Link",
   "description": "Feed The Machine",
   "version": "0.0.1",
 
@@ -18,7 +18,7 @@
     "browser_style": true
   },
   "browser_action": {
-    "default_title": "EXT",
+    "default_title": "Link",
     "default_popup": "index.html",
     "default_icon": {
       "128": "icons/icon.png"

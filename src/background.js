@@ -2,36 +2,60 @@
 import Gun from './gun.js'
 import { pipeline, env } from '@xenova/transformers'
 
-env.allowLocalModels = false
-
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
 env.backends.onnx.wasm.numThreads = 1
+env.allowLocalModels = false
+
+let foregroundPort = null
+
+chrome.runtime.onConnect.addListener((port) => {
+    if (port.name === 'foreground') {
+        foregroundPort = port
+        foregroundPort.onDisconnect.addListener(() => {
+            foregroundPort = null
+        })
+    }
+})
+
+class ContextHandler {
+    constructor() {
+        this.context = []
+        this.keepChars = 1024
+    }
+
+    add(message) {
+        this.context.push(message)
+    }
+
+    get() {
+        let prompt = `¶${this.context.join('¶')}`.slice(-this.keepChars)
+        if (!prompt.endsWith('¶')) prompt += '¶'
+        return prompt
+    }
+}
+
+const context = new ContextHandler()
 
 const gun = new Gun()
 const focus = gun.subscribe('trade')
 focus.on(async (node) => {
     if (typeof node === 'undefined' || typeof node === 'null') return
-    sendDataToPopup(JSON.parse(node).message)
+    const message = JSON.parse(node).message
+    context.add(message)
+    sendToForeground(message)
 })
 
 // Function to send data to the popup
-function sendDataToPopup(data) {
-    chrome.runtime.sendMessage({ type: 'update', data: data })
+function sendToForeground(data) {
+    if (foregroundPort) {
+        foregroundPort.postMessage({ type: 'update', data: data })
+    }
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action !== 'send') return
     gun.send(message.text)
-    // gun.send(data)
-    // // Run model prediction asynchronously
-    // ;(async function () {
-    //     // Perform classification
-    //     let result = await classify(message.text)
-
-    //     // Send response back to UI
-    //     sendResponse(result)
-    // })()
 
     // return true to indicate we will send a response asynchronously
     // see https://stackoverflow.com/a/46628145 for more information
@@ -76,19 +100,25 @@ const predict = async (text) => {
         // console.log('progress', data)
     })
 
+    const prompt = context.get()
+    console.log(prompt)
+
     // Actually run the model on the input text
-    let result = await generator(text, {
+    let result = await generator(prompt, {
         do_sample: true,
-        temperature: 7.0,
-        max_new_tokens: 10,
-        repetition_penalty: 1.5,
-        no_repeat_ngram_size: 7
+        temperature: 0.7,
+        max_new_tokens: 23,
+        repetition_penalty: 1.1,
+        no_repeat_ngram_size: 11
     })
 
-    console.log(result)
+    const pred = result[0].generated_text
+    const clean = pred.replace(prompt, '')
 
-    sendDataToPopup(result[0].generated_text)
-    gun.send(result[0].generated_text)
+    console.log(clean)
 
-    return result[0].generated_text
+    gun.send(clean)
+    sendToForeground(clean)
+
+    // return lastSection
 }
