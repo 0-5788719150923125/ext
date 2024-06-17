@@ -82,15 +82,24 @@ body {
   filter: blur(0px);
 }
 
-#persist {
+.button-container {
   position: fixed;
   bottom: 0;
   right: 0;
+  display: flex;
+  gap: 10px;
   margin: 10px;
   z-index: 1001;
 }
 
-#persist img {
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.icon-button img {
   width: 2em;
   height: auto;
 }
