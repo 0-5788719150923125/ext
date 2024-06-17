@@ -1,5 +1,5 @@
 // popup.js - handles interaction with the extension's popup, sends requests to the
-// service worker (background.js), and updates the popup's UI (popup.html) on completion.
+// service worker (background.js), and updates the popup's UI (index.html) on completion.
 
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
