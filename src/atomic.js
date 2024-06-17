@@ -31,8 +31,30 @@ ctx.scale(dpr, dpr)
 canvas.style.width = rect.width + 'px'
 canvas.style.height = rect.height + 'px'
 
-const centerX = canvas.width / 2
-const centerY = canvas.height / 2
+// Get the initial center coordinates
+let centerX = canvas.width / 2
+let centerY = canvas.height / 2
+
+// Function to update the center coordinates and resize the canvas when the window is resized
+function resizeCanvas() {
+    // Adjust for high DPI displays
+    const dpr = window.devicePixelRatio || 1
+    const rect = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    }
+    canvas.width = rect.width * dpr
+    canvas.height = rect.height * dpr
+    ctx.scale(dpr, dpr)
+
+    // Ensure the canvas is styled to fit the screen
+    canvas.style.width = rect.width + 'px'
+    canvas.style.height = rect.height + 'px'
+
+    // Update the center coordinates
+    centerX = canvas.width / 2
+    centerY = canvas.height / 2
+}
 
 function drawAtom(x, y, z, text) {
     const scaledRadius = baseRadius / (1 + z * scalingFactor)
@@ -378,10 +400,11 @@ async function cycleAtoms() {
     cycleAtoms()
 }
 
+// Add an event listener to resize the canvas when the window is resized
+window.addEventListener('resize', resizeCanvas)
+
+// Initial canvas resize
+resizeCanvas()
+
 animateAtoms()
 cycleAtoms()
-
-// Function to generate a random number within a range
-function getRandomInRange(min, max) {
-    return Math.random() * (max - min) + min
-}

@@ -3,7 +3,7 @@
 
 import Gun from './gun.js'
 
-const inputElement = document.getElementById('text')
+const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 
 const gun = new Gun()
