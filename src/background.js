@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 })
 
 // Function to send data to the popup
-function sendToForeground(type = 'toOutputField', data) {
+function sendToForeground(type, data) {
     if (foregroundPort) {
         foregroundPort.postMessage({ type, data })
     } else {
@@ -71,16 +71,6 @@ const inferenceWorker = new Worker(new URL('worker.js', import.meta.url), {
     type: 'module'
 })
 
-// inferenceWorker.onmessage = async (event) => {
-//     if (event.data.status === 'partial') {
-//         sendToForeground('toInputField', event.data.input)
-//     } else if (event.data.status === 'complete') {
-//         sendToForeground('toInputField', '')
-//         sendToForeground('toOutputField', event.data.output)
-//         gun.send(event.data.output)
-//     }
-// }
-
 function createListeners() {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.action !== 'send') return
@@ -92,21 +82,27 @@ function createListeners() {
     })
 
     inferenceWorker.onmessage = async (event) => {
+        console.log(event.data)
         if (event.data.status === 'partial') {
+            sendToForeground('floatRight')
             sendToForeground('toInputField', event.data.input)
         } else if (event.data.status === 'complete') {
+            sendToForeground('toInputField', '')
+            sendToForeground('floatLeft')
             sendToForeground('toOutputField', event.data.output)
             gun.send(event.data.output)
+        } else if (event.data.action === 'cleanup') {
             sendToForeground('toInputField', '')
-            sendToForeground('resetInput')
-        } else if (event.data.status === 'done') {
-            sendToForeground('resetInput')
+            sendToForeground('floatLeft')
         } else if (
-            !['progress', 'ready', 'download', 'initiate'].includes(
+            !['progress', 'ready', 'done', 'download', 'initiate'].includes(
                 event.data.status
             )
         ) {
             console.log(event)
+        } else {
+            sendToForeground('toInputField', '')
+            sendToForeground('floatLeft')
         }
     }
 

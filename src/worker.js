@@ -59,7 +59,7 @@ self.onmessage = async function (event) {
                 const cleanedPartial = cleanPrediction(prompt, partial)
                 if (cleanedPartial.length > 3) {
                     tokenCount++
-                    const delay = tokenCount * 500
+                    const delay = tokenCount * 333
                     setTimeout(() => {
                         self.postMessage({
                             status: 'partial',
@@ -75,11 +75,15 @@ self.onmessage = async function (event) {
         setTimeout(() => {
             const pred = result[0].generated_text
             const clean = cleanPrediction(prompt, pred)
-            self.postMessage({ status: 'complete', output: clean })
+            if (clean.length > 3) {
+                self.postMessage({ status: 'complete', output: clean })
+            }
+            self.postMessage({ action: 'cleanup' })
         }, totalDelay)
     } catch (err) {
         console.error(err)
         self.postMessage(err)
+        self.postMessage({ action: 'cleanup' })
     }
     isRunning = false
 }

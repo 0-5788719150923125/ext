@@ -15,7 +15,9 @@ backgroundPort.onMessage.addListener((message) => {
     } else if (message.type === 'toInputField') {
         const data = message.data
         updateInputUI(data)
-    } else if (message.type === 'resetInput') {
+    } else if (message.type === 'floatRight') {
+        inputElement.classList.add('right-align')
+    } else if (message.type === 'floatLeft') {
         inputElement.classList.remove('right-align')
     }
 })
@@ -27,7 +29,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.type === 'toInputField') {
         const data = message.data
         updateInputUI(data)
-    } else if (message.type === 'resetInput') {
+    } else if (message.type === 'floatRight') {
+        inputElement.classList.add('right-align')
+    } else if (message.type === 'floatLeft') {
         inputElement.classList.remove('right-align')
     }
 })
@@ -57,7 +61,6 @@ function updateOutputUI(string) {
 }
 
 function updateInputUI(string) {
-    inputElement.classList.add('right-align')
     inputElement.value = string
 }
 
