@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "extension",
-  "description": "Transformers.js | Sample browser extension",
+  "name": "EXT",
+  "description": "Feed The Machine",
   "version": "0.0.1",
   "permissions": [
     "activeTab",

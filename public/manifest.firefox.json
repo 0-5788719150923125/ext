@@ -1,0 +1,33 @@
+{
+  "manifest_version": 2,
+  "name": "EXT",
+  "description": "Feed The Machine",
+  "version": "0.0.1",
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js", "core.js"]
+    }
+  ],
+  "page_action": {
+    "default_icon": "icons/icon.png",
+    "browser_style": true
+  },
+
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "storage",
+    "unlimitedStorage",
+    "browsingData",
+    "cookies",
+    "dns",
+    "downloads",
+    "webRequest"
+  ]
+}

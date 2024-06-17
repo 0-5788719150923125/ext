@@ -27,6 +27,6 @@ focus.on(async (node) => {
     }
     chrome.runtime.sendMessage(message, (response) => {
         console.log('received user data', response)
-        outputElement.innerText = JSON.stringify(response, null, 2)
+        outputElement.innerText = JSON.stringify(message, null, 2)
     })
 })

@@ -5,6 +5,7 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 import CopyPlugin from 'copy-webpack-plugin'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const browser = process.env.NODE_ENV || 'chromium'
 
 const config = {
     mode: 'development',
@@ -16,7 +17,7 @@ const config = {
         core: './src/core.js'
     },
     output: {
-        path: path.resolve(__dirname, 'build'),
+        path: path.resolve(__dirname, `dist/${browser}`),
         filename: '[name].js'
     },
     plugins: [
@@ -27,8 +28,12 @@ const config = {
         new CopyPlugin({
             patterns: [
                 {
-                    from: 'public',
-                    to: '.' // Copies to build folder
+                    from: 'public/icons',
+                    to: './icons'
+                },
+                {
+                    from: `public/manifest.${browser}.json`,
+                    to: './manifest.json'
                 },
                 {
                     from: 'src/style.css',
