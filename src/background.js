@@ -38,13 +38,28 @@ class ContextHandler {
 const context = new ContextHandler()
 
 const gun = new Gun()
-const focus = gun.subscribe('trade')
+let focus = gun.subscribe('trade')
 focus.on(async (node) => {
+    console.log(node)
     if (typeof node === 'undefined' || typeof node === 'null') return
     const message = JSON.parse(node).message
     context.add(message)
     sendToForeground(message)
 })
+
+setTimeout(function request() {
+    console.log('tick')
+    focus = gun.subscribe('trade')
+    gun.send('tick')
+    setTimeout(request, 5000)
+}, 5000)
+
+setTimeout(function request() {
+    console.log('tock')
+    focus = gun.subscribe('trade')
+    gun.send('tock')
+    setTimeout(request, 5000)
+}, 5000)
 
 // Function to send data to the popup
 function sendToForeground(data) {
