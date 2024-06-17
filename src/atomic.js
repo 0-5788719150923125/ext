@@ -184,7 +184,6 @@ let frameCount = 0
 let lastFrameTime = 0
 
 function animateAtoms(currentTime) {
-    const deltaTime = currentTime - lastFrameTime
     lastFrameTime = currentTime
 
     // Clear the canvas
