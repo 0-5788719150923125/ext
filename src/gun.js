@@ -32,7 +32,9 @@ class Controller {
                 pubKey: null
             }),
             function (ack) {
-                console.log(ack)
+                if (!ack.ok) {
+                    console.error(ack)
+                }
             }
         )
     }

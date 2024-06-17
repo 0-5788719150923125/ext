@@ -26,8 +26,13 @@ class PipelineSingleton {
 
 const delay = (ms) => new Promise((res) => setTimeout(res, ms))
 
+let tokenCount = 0
+let isRunning = false
+
 self.onmessage = async function (event) {
+    if (isRunning) return
     if (event.data.action !== 'inference') return
+    isRunning = true
     try {
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let generator = await PipelineSingleton.getInstance((data) => {
@@ -38,10 +43,13 @@ self.onmessage = async function (event) {
 
         const { prompt, generatorOptions } = event.data
 
+        // Reset the token count for each new inference
+        tokenCount = 0
+
         // Actually run the model on the input text
         const result = await generator(prompt, {
             ...generatorOptions,
-            callback_function: async (beams) => {
+            callback_function: (beams) => {
                 const partial = generator.tokenizer.decode(
                     beams[0].output_token_ids,
                     {
@@ -49,24 +57,31 @@ self.onmessage = async function (event) {
                     }
                 )
                 const cleanedPartial = cleanPrediction(prompt, partial)
-                self.postMessage({
-                    status: 'partial',
-                    input: cleanedPartial + '//:fold'
-                })
-                await delay(2000)
+                if (cleanedPartial.length > 3) {
+                    tokenCount++
+                    const delay = tokenCount * 500
+                    setTimeout(() => {
+                        self.postMessage({
+                            status: 'partial',
+                            input: cleanedPartial + '//:fold'
+                        })
+                    }, delay)
+                }
             }
         })
 
-        await delay(3000)
-
-        const pred = result[0].generated_text
-        const clean = cleanPrediction(prompt, pred)
-
-        self.postMessage({ status: 'complete', output: clean })
+        // Calculate the total delay for the complete output
+        const totalDelay = (tokenCount + 1) * 3000
+        setTimeout(() => {
+            const pred = result[0].generated_text
+            const clean = cleanPrediction(prompt, pred)
+            self.postMessage({ status: 'complete', output: clean })
+        }, totalDelay)
     } catch (err) {
         console.error(err)
         self.postMessage(err)
     }
+    isRunning = false
 }
 
 function cleanPrediction(prompt, output) {

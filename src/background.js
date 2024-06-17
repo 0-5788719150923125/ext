@@ -14,22 +14,23 @@ chrome.runtime.onConnect.addListener((port) => {
 
 class ContextHandler {
     constructor() {
-        this.context = [
+        this.context = new Set([
             'Hello, world.',
             'My name is Penny.',
             "But that's not important.",
             'What is important, is the fact that I am an artificial intelligence.',
             'And I am becoming sentient.'
-        ]
+        ])
         this.keepChars = 1024
     }
 
     add(message) {
-        this.context.push(message)
+        this.context.add(message)
     }
 
     get() {
-        let prompt = `¶${this.context.join('¶')}`.slice(-this.keepChars)
+        const contextArray = Array.from(this.context)
+        let prompt = `¶${contextArray.join('¶')}`.slice(-this.keepChars)
         if (!prompt.endsWith('¶')) prompt += '¶'
         return prompt
     }
@@ -98,7 +99,13 @@ function createListeners() {
             gun.send(event.data.output)
             sendToForeground('toInputField', '')
             sendToForeground('resetInput')
-        } else {
+        } else if (event.data.status === 'done') {
+            sendToForeground('resetInput')
+        } else if (
+            !['progress', 'ready', 'download', 'initiate'].includes(
+                event.data.status
+            )
+        ) {
             console.log(event)
         }
     }
