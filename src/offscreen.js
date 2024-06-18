@@ -1,27 +1,27 @@
 // Manifest v3 will not allow us to create nested workers, so we must use an
 // off-screen worker to proxy messages between popup.js and backend.js
 
-let foregroundPort = null
+// let foregroundPort = null
 
-chrome.runtime.onConnect.addListener((port) => {
-    if (port.name === 'foreground') {
-        foregroundPort = port
-        foregroundPort.onDisconnect.addListener(() => {
-            foregroundPort = null
-        })
-    }
-})
+// chrome.runtime.onConnect.addListener((port) => {
+//     if (port.name === 'foreground') {
+//         foregroundPort = port
+//         foregroundPort.onDisconnect.addListener(() => {
+//             foregroundPort = null
+//         })
+//     }
+// })
 
 function sendToForeground(type, data) {
-    if (foregroundPort) {
-        foregroundPort.postMessage({ type, data })
-    } else {
-        try {
-            chrome.runtime.sendMessage({ type, data })
-        } catch (err) {
-            console.err('failed to send to front end')
-        }
-    }
+    // if (foregroundPort) {
+    //     foregroundPort.postMessage({ type, data })
+    // } else {
+    //     try {
+    chrome.runtime.sendMessage({ type, data })
+    // } catch (err) {
+    //     console.err('failed to send to front end')
+    // }
+    // }
 }
 
 // Create the web worker

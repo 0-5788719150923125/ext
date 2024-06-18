@@ -1,16 +1,18 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
 import Gun from './gun.js'
 
-let foregroundPort = null
+console.log('launching service worker')
 
-chrome.runtime.onConnect.addListener((port) => {
-    if (port.name === 'foreground') {
-        foregroundPort = port
-        foregroundPort.onDisconnect.addListener(() => {
-            foregroundPort = null
-        })
-    }
-})
+// let foregroundPort = null
+
+// chrome.runtime.onConnect.addListener((port) => {
+//     if (port.name === 'foreground') {
+//         foregroundPort = port
+//         foregroundPort.onDisconnect.addListener(() => {
+//             foregroundPort = null
+//         })
+//     }
+// })
 
 class ContextHandler {
     constructor() {
@@ -38,32 +40,29 @@ class ContextHandler {
 
 const context = new ContextHandler()
 
-let gun
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'bootstrap') {
-        gun = new Gun()
-        let focus = gun.subscribe('trade')
-        focus.on(async (node) => {
-            if (typeof node === 'undefined' || typeof node === 'null') return
-            const message = JSON.parse(node).message
-            context.add(message)
-            sendToForeground('toOutputField', message)
-        })
-        createListeners()
-    }
+let gun = new Gun()
+gun.subscribe('trade').on(async (node) => {
+    if (['null', 'undefined'].includes(typeof node)) return
+    const message = JSON.parse(node).message
+    context.add(message)
+    sendToForeground('toOutputField', message)
 })
+
+createListeners()
 
 // Function to send data to the popup
 function sendToForeground(type, data) {
-    if (foregroundPort) {
-        foregroundPort.postMessage({ type, data })
-    } else {
-        try {
-            chrome.runtime.sendMessage({ type, data })
-        } catch (err) {
-            console.err('failed to send to front end')
-        }
-    }
+    // console.log(foregroundPort)
+    // if (foregroundPort) {
+    //     foregroundPort.postMessage({ type, data })
+    // } else {
+    // try {
+    //     chrome.runtime.sendMessage({ type, data })
+    // } catch (err) {
+    //     console.err('failed to send to front end')
+    // }
+    // }
+    chrome.runtime.sendMessage({ type, data })
 }
 
 // When you want to start the token generation process
@@ -123,19 +122,20 @@ async function sendMessageToOffscreen(data) {
     }
 }
 
-// Create the web worker (Firefox and other browsers)
-let inferenceWorker
-if (!chrome.offscreen) {
-    inferenceWorker = new Worker(new URL('worker.js', import.meta.url), {
-        type: 'module'
-    })
-}
-
 function createListeners() {
+    // Create the web worker (Firefox and other browsers)
+    let inferenceWorker
+    if (!chrome.offscreen) {
+        const workerUrl = chrome.runtime.getURL('worker.js')
+        inferenceWorker = new Worker(workerUrl, {
+            type: 'module'
+        })
+    }
+
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        if (message.type === 'toOutputField') {
-            gun.send(message.data)
-        }
+        // if (message.type === 'toOutputField') {
+        //     gun.send(message.data)
+        // }
         if (message.action !== 'send') return
         gun.send(message.text)
 
