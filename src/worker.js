@@ -61,13 +61,13 @@ const classify = async (context, options) => {
 const delay = (ms) => new Promise((res) => setTimeout(res, ms))
 
 let tokenCount = 0
-let isRunning = false
+// let isRunning = false
 let lastTokenTime = 0
 
 self.onmessage = async function (event) {
-    if (isRunning) return
+    // if (isRunning) return
     if (event.data.action !== 'inference') return
-    isRunning = true
+    // isRunning = true
     try {
         const { prompt, generatorOptions } = event.data
 
@@ -104,18 +104,18 @@ self.onmessage = async function (event) {
                         skip_special_tokens: true
                     }
                 )
-                const cleanedPartial = cleanPrediction(partial, prompt)
-                if (cleanedPartial.length > 2) {
-                    tokenCount++
-                    const delay = tokenCount * 333
-                    setTimeout(() => {
-                        self.postMessage({
-                            status: 'partial',
-                            input: cleanedPartial + '//:fold'
-                        })
-                        lastTokenTime = Date.now()
-                    }, delay)
-                }
+                // const cleanedPartial = cleanPrediction(partial, prompt)
+                let cleanedPartial = partial.replace(prompt, '')
+
+                tokenCount++
+                const delay = tokenCount * 333
+                setTimeout(() => {
+                    self.postMessage({
+                        status: 'partial',
+                        input: cleanedPartial
+                    })
+                    lastTokenTime = Date.now()
+                }, delay)
             }
         })
 
@@ -126,14 +126,13 @@ self.onmessage = async function (event) {
 
         const pred = result[0].generated_text
         const clean = cleanPrediction(pred, prompt)
-        if (clean.length > 2) {
-            self.postMessage({ status: 'complete', output: clean })
-        }
+
+        self.postMessage({ status: 'complete', output: clean })
     } catch (err) {
         self.postMessage(err)
     }
     self.postMessage({ action: 'cleanup' })
-    isRunning = false
+    // isRunning = false
 }
 
 function cleanPrediction(output, prompt = '') {

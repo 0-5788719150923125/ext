@@ -150,10 +150,12 @@ function createListeners() {
                 sendToForeground('toTopic', event.data.answer)
             } else if (event.data.status === 'partial') {
                 sendToForeground('floatRight')
-                sendToForeground('toInputField', event.data.input)
+                sendToForeground('toInputField', event.data.input + '//:fold')
             } else if (event.data.status === 'complete') {
-                sendToForeground('toOutputField', event.data.output)
-                gun.send(event.data.output)
+                if (event.data.output.length > 2) {
+                    sendToForeground('toOutputField', event.data.output)
+                    gun.send(event.data.output)
+                }
             } else if (event.data.action === 'cleanup') {
                 sendToForeground('toInputField', '')
                 sendToForeground('floatLeft')
@@ -175,34 +177,39 @@ function createListeners() {
         periodInMinutes: 1 // Trigger the alarm every 1 minute
     })
 
+    let isRunning = false
+
     // Listen for a specific event and perform an action
     chrome.alarms.onAlarm.addListener(async (alarm) => {
-        // if (alarm.name === 'doInference') {
-
-        if (!chrome.offscreen) {
-            inferenceWorker.postMessage({
-                action: 'inference',
-                prompt: context.get(),
-                generatorOptions: {
-                    do_sample: true,
-                    temperature: 0.3,
-                    max_new_tokens: 23,
-                    repetition_penalty: 1.001,
-                    no_repeat_ngram_size: 11
-                }
-            })
-        } else {
-            sendMessageToOffscreen({
-                action: 'inference',
-                prompt: context.get(),
-                generatorOptions: {
-                    do_sample: true,
-                    temperature: 0.3,
-                    max_new_tokens: 23,
-                    repetition_penalty: 1.001,
-                    no_repeat_ngram_size: 11
-                }
-            })
+        if (alarm.name === 'doInference') {
+            if (isRunning) return
+            isRunning = true
+            if (!chrome.offscreen) {
+                inferenceWorker.postMessage({
+                    action: 'inference',
+                    prompt: context.get(),
+                    generatorOptions: {
+                        do_sample: true,
+                        temperature: 0.45,
+                        max_new_tokens: 59,
+                        repetition_penalty: 1.001,
+                        no_repeat_ngram_size: 11
+                    }
+                })
+            } else {
+                sendMessageToOffscreen({
+                    action: 'inference',
+                    prompt: context.get(),
+                    generatorOptions: {
+                        do_sample: true,
+                        temperature: 0.3,
+                        max_new_tokens: 23,
+                        repetition_penalty: 1.001,
+                        no_repeat_ngram_size: 11
+                    }
+                })
+            }
+            isRunning = false
         }
     })
 }

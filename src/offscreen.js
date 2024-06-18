@@ -46,10 +46,12 @@ inferenceWorker.onmessage = async (event) => {
         sendToForeground('toTopic', event.data.answer)
     } else if (event.data.status === 'partial') {
         sendToForeground('floatRight')
-        sendToForeground('toInputField', event.data.input)
+        sendToForeground('toInputField', event.data.input + '//:fold')
     } else if (event.data.status === 'complete') {
-        sendToForeground('toOutputField', event.data.output)
-        // gun.send(event.data.output)
+        if (event.data.output.length > 2) {
+            sendToForeground('toOutputField', event.data.output)
+            // gun.send(event.data.output)
+        }
     } else if (event.data.action === 'cleanup') {
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')
