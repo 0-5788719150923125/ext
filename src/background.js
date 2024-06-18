@@ -48,7 +48,7 @@ gun.subscribe('trade').on(async (node) => {
     sendToForeground('toOutputField', message)
 })
 
-createListeners()
+// createListeners()
 
 // Function to send data to the popup
 function sendToForeground(type, data) {
@@ -122,65 +122,75 @@ async function sendMessageToOffscreen(data) {
     }
 }
 
-function createListeners() {
-    // Create the web worker (Firefox and other browsers)
-    let inferenceWorker
-    if (!chrome.offscreen) {
-        const workerUrl = chrome.runtime.getURL('worker.js')
-        inferenceWorker = new Worker(workerUrl, {
-            type: 'module'
-        })
-    }
-
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        // if (message.type === 'toOutputField') {
-        //     gun.send(message.data)
-        // }
-        if (message.action !== 'send') return
-        gun.send(message.text)
-
-        // return true to indicate we will send a response asynchronously
-        // see https://stackoverflow.com/a/46628145 for more information
-        // return true
+// function createListeners() {
+// Create the web worker (Firefox and other browsers)
+let inferenceWorker
+if (!chrome.offscreen) {
+    const workerUrl = chrome.runtime.getURL('worker.js')
+    inferenceWorker = new Worker(workerUrl, {
+        type: 'module'
     })
+}
 
-    if (!chrome.offscreen) {
-        inferenceWorker.onmessage = async (event) => {
-            if (event.data.action === 'classification') {
-                sendToForeground('toTopic', event.data.answer)
-            } else if (event.data.status === 'partial') {
-                sendToForeground('floatRight')
-                sendToForeground('toInputField', event.data.input + '//:fold')
-            } else if (event.data.status === 'complete') {
-                if (event.data.output.length > 2) {
-                    sendToForeground('toOutputField', event.data.output)
-                    gun.send(event.data.output)
-                }
-            } else if (event.data.action === 'cleanup') {
-                sendToForeground('toInputField', '')
-                sendToForeground('floatLeft')
-            } else if (
-                !['progress', 'ready', 'done', 'download', 'initiate'].includes(
-                    event.data.status
-                )
-            ) {
-                console.log(event)
-            } else {
-                sendToForeground('toInputField', '')
-                sendToForeground('floatLeft')
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // if (message.type === 'toOutputField') {
+    //     gun.send(message.data)
+    // }
+    if (message.action !== 'send') return
+    gun.send(message.text)
+
+    // return true to indicate we will send a response asynchronously
+    // see https://stackoverflow.com/a/46628145 for more information
+    // return true
+})
+
+if (!chrome.offscreen) {
+    inferenceWorker.onmessage = async (event) => {
+        if (event.data.action === 'classification') {
+            sendToForeground('toTopic', event.data.answer)
+        } else if (event.data.status === 'partial') {
+            sendToForeground('floatRight')
+            sendToForeground('toInputField', event.data.input + '//:fold')
+        } else if (event.data.status === 'complete') {
+            if (event.data.output.length > 2) {
+                sendToForeground('toOutputField', event.data.output)
+                gun.send(event.data.output)
             }
+        } else if (event.data.action === 'cleanup') {
+            sendToForeground('toInputField', '')
+            sendToForeground('floatLeft')
+        } else if (
+            !['progress', 'ready', 'done', 'download', 'initiate'].includes(
+                event.data.status
+            )
+        ) {
+            console.log(event)
+        } else {
+            sendToForeground('toInputField', '')
+            sendToForeground('floatLeft')
         }
     }
+}
 
-    // Set up a recurring prediction
+// Set up a recurring prediction
+
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
+    console.log(reason)
+    // if (reason !== 'install' 'update') {
+    //     return
+    // }
+    console.log('registering alarm')
+    // Create an alarm so we have something to look at in the demo
     chrome.alarms.create('doInference', {
-        periodInMinutes: 1 // Trigger the alarm every 1 minute
+        periodInMinutes: 1
+        // delayInMinutes: 1
     })
 
     let isRunning = false
 
     // Listen for a specific event and perform an action
     chrome.alarms.onAlarm.addListener(async (alarm) => {
+        console.log('running for foreground')
         if (alarm.name === 'doInference') {
             if (isRunning) return
             isRunning = true
@@ -212,4 +222,4 @@ function createListeners() {
             isRunning = false
         }
     })
-}
+})

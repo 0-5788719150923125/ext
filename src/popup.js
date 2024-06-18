@@ -1,6 +1,8 @@
 // popup.js - handles interaction with the extension's popup, sends requests to the
 // service worker (background.js), and updates the popup's UI (index.html) on completion.
 
+import { randomString } from './common.js'
+
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 const topicElement = document.getElementById('topic')
@@ -8,23 +10,25 @@ const topicElement = document.getElementById('topic')
 // chrome.runtime.sendMessage({ action: 'bootstrap' })
 
 // Listen for messages from background workers
-// const backgroundPort = chrome.runtime.connect({ name: 'foreground' })
-// backgroundPort.onMessage.addListener((message) => {
-//     if (message.type === 'toOutputField') {
-//         const data = message.data
-//         updateOutputUI(data)
-//     } else if (message.type === 'toInputField') {
-//         const data = message.data
-//         updateInputUI(data)
-//     } else if (message.type === 'floatRight') {
-//         inputElement.classList.add('right-align')
-//     } else if (message.type === 'floatLeft') {
-//         inputElement.classList.remove('right-align')
-//     } else if (message.type === 'toTopic') {
-//         const data = message.data
-//         updateTopicUI(data)
-//     }
-// })
+const backgroundPort = chrome.runtime.connect({
+    name: `foreground-${randomString(3)}`
+})
+backgroundPort.onMessage.addListener((message) => {
+    if (message.type === 'toOutputField') {
+        const data = message.data
+        updateOutputUI(data)
+    } else if (message.type === 'toInputField') {
+        const data = message.data
+        updateInputUI(data)
+    } else if (message.type === 'floatRight') {
+        inputElement.classList.add('right-align')
+    } else if (message.type === 'floatLeft') {
+        inputElement.classList.remove('right-align')
+    } else if (message.type === 'toTopic') {
+        const data = message.data
+        updateTopicUI(data)
+    }
+})
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'toOutputField') {

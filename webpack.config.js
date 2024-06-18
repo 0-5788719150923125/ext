@@ -31,6 +31,11 @@ const config = {
         new CopyPlugin({
             patterns: [
                 {
+                    from: '*.js',
+                    context: 'src',
+                    to: '.'
+                },
+                {
                     from: 'public/icons',
                     to: './icons'
                 },

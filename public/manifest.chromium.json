@@ -6,25 +6,12 @@
   "permissions": [
     "activeTab",
     "alarms",
-    "browsingData",
-    "contextMenus",
-    "cookies",
-    "debugger",
-    "dns",
-    "downloads",
-    "scripting",
     "storage",
     "tabCapture",
     "tabs",
     "unlimitedStorage",
     "webRequest",
     "offscreen"
-  ],
-  "host_permissions": [
-    "https://59.src.eco/gun",
-    "https://95.src.eco/gun",
-    "wss://59.src.eco/gun",
-    "wss://95.src.eco/gun"
   ],
   "background": {
     "service_worker": "background.js",
