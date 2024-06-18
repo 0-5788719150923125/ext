@@ -35,12 +35,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 })
 
-// // Listen for messages from the worker
-// inferenceWorker.onmessage = (event) => {
-//     // Send the message back to the background script
-//     chrome.runtime.sendMessage(event.data)
-// }
-
 inferenceWorker.onmessage = async (event) => {
     if (event.data.action === 'classification') {
         sendToForeground('toTopic', event.data.answer)

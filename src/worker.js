@@ -3,13 +3,14 @@ import { pipeline, env } from '@xenova/transformers'
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
 env.backends.onnx.wasm.numThreads = 1
-env.allowLocalModels = false
+env.allowLocalModels = true
 
 // Use the Singleton pattern to enable lazy construction of the pipeline.
 class InferenceSingleton {
     static task = 'text-generation'
     // static model = 'Xenova/pythia-14m'
-    static model = 'Xenova/pythia-31m'
+    // static model = 'Xenova/pythia-31m'
+    static model = 'Xenova/LaMini-Neo-125M'
     // static model = 'Xenova/llama2.c-stories15M'
     static instance = null
 
