@@ -14,7 +14,6 @@ const config = {
         background: './src/background.js',
         popup: './src/popup.js',
         content: './src/content.js',
-        gun: './src/gun.js',
         worker: './src/worker.js',
         offscreen: './src/offscreen.js'
     },

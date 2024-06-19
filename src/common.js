@@ -44,6 +44,8 @@ export function eventHandler(event) {
         )
     ) {
         sendToBackground('toUnclassified', { error: event })
+    } else if (event.data.status === 'error') {
+        sendToBackground('toError', event.data)
     } else {
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')

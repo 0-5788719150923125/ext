@@ -51,8 +51,12 @@ const classify = async (context, options) => {
     return await model(question, context, options)
 }
 
+let isBusy = false
+
 self.onmessage = async function (event) {
+    if (isBusy) return
     if (event.data.action !== 'inference') return
+    isBusy = true
     try {
         const { prompt, generatorOptions } = event.data
 
@@ -125,9 +129,11 @@ self.onmessage = async function (event) {
                 break
             }
         }
-    } catch (err) {
-        self.postMessage(err)
+    } catch (error) {
+        self.postMessage({ status: 'fail', error })
     }
+    isBusy = false
+    self.postMessage({ status: 'complete', output: '' })
 }
 
 function cleanPrediction(output, prompt = '') {
