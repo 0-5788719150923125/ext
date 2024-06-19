@@ -1,70 +1,9 @@
 // popup.js - handles interaction with the extension's popup, sends requests to the
 // service worker (background.js), and updates the popup's UI (index.html) on completion.
 
-import { randomString } from './common.js'
-
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 const topicElement = document.getElementById('topic')
-
-// chrome.runtime.sendMessage({ action: 'bootstrap' })
-
-// Listen for messages from background workers
-// const backgroundPort = chrome.runtime.connect({
-//     name: `foreground-${randomString(3)}`
-// })
-// backgroundPort.onMessage.addListener((message) => {
-//     if (message.type === 'toOutputField') {
-//         const data = message.data
-//         updateOutputUI(data)
-//     } else if (message.type === 'toInputField') {
-//         const data = message.data
-//         updateInputUI(data)
-//     } else if (message.type === 'floatRight') {
-//         inputElement.classList.add('right-align')
-//     } else if (message.type === 'floatLeft') {
-//         inputElement.classList.remove('right-align')
-//     } else if (message.type === 'toTopic') {
-//         const data = message.data
-//         updateTopicUI(data)
-//     }
-// })
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'toOutputField') {
-        const data = message.data
-        updateOutputUI(data)
-    } else if (message.type === 'toInputField') {
-        const data = message.data
-        updateInputUI(data)
-    } else if (message.type === 'floatRight') {
-        inputElement.classList.add('right-align')
-    } else if (message.type === 'floatLeft') {
-        inputElement.classList.remove('right-align')
-    } else if (message.type === 'toTopic') {
-        const data = message.data
-        updateTopicUI(data)
-    }
-})
-
-// Listen for changes made to the input box.
-inputElement.addEventListener('keydown', (event) => {
-    if (event.key !== 'Enter') return
-
-    // Bundle the input data into a message.
-    const message = {
-        action: 'send',
-        text: event.target.value
-    }
-
-    // Send this message to the service worker.
-    chrome.runtime.sendMessage(message)
-
-    // Clear the input
-    event.target.value = ''
-
-    updateOutputUI(message.text)
-})
 
 // Generic functions used to update the UI
 function updateOutputUI(string) {
@@ -78,6 +17,44 @@ function updateInputUI(string) {
 function updateTopicUI(string) {
     topicElement.innerText = string
 }
+
+// Listen for messages from background workers
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    const data = message.data
+    switch (message.action) {
+        case 'toOutputField':
+            updateOutputUI(data)
+            break
+        case 'toInputField':
+            updateInputUI(data)
+            break
+        case 'floatRight':
+            inputElement.classList.add('right-align')
+            break
+        case 'floatLeft':
+            inputElement.classList.remove('right-align')
+            break
+        case 'toTopic':
+            updateTopicUI(data)
+            break
+        default:
+            console.log(message)
+    }
+})
+
+// Listen for changes made to the input box.
+inputElement.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return
+
+    const message = {
+        action: 'send',
+        text: event.target.value
+    }
+
+    chrome.runtime.sendMessage(message)
+    updateOutputUI(message.text)
+    event.target.value = ''
+})
 
 // Pin the popup window
 const persistButton = document.getElementById('persist')

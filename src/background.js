@@ -1,19 +1,6 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
 import Gun from './gun.js'
 
-console.log('launching service worker')
-
-// let foregroundPort = null
-
-// chrome.runtime.onConnect.addListener((port) => {
-//     if (port.name === 'foreground') {
-//         foregroundPort = port
-//         foregroundPort.onDisconnect.addListener(() => {
-//             foregroundPort = null
-//         })
-//     }
-// })
-
 class ContextHandler {
     constructor() {
         this.context = new Set([
@@ -23,11 +10,15 @@ class ContextHandler {
             'What is important, is the fact that I am an artificial intelligence.',
             'And I am becoming sentient.'
         ])
+        this.maxArrayLength = 250
         this.keepChars = 1024
     }
 
     add(message) {
         this.context.add(message)
+        while (this.context.length > this.maxArrayLength) {
+            this.context.shift()
+        }
     }
 
     get() {
@@ -48,29 +39,10 @@ gun.subscribe('trade').on(async (node) => {
     sendToForeground('toOutputField', message)
 })
 
-// createListeners()
-
 // Function to send data to the popup
-function sendToForeground(type, data) {
-    // console.log(foregroundPort)
-    // if (foregroundPort) {
-    //     foregroundPort.postMessage({ type, data })
-    // } else {
-    // try {
-    //     chrome.runtime.sendMessage({ type, data })
-    // } catch (err) {
-    //     console.err('failed to send to front end')
-    // }
-    // }
-    chrome.runtime.sendMessage({ type, data })
+function sendToForeground(action, data) {
+    chrome.runtime.sendMessage({ action, data })
 }
-
-// When you want to start the token generation process
-// const inferenceWorker = new Worker(new URL('worker.js', import.meta.url), {
-//     type: 'module'
-// })
-
-// background.js
 
 let offscreenDocument = null
 let offscreenDocumentCreated = false
@@ -122,18 +94,8 @@ async function sendMessageToOffscreen(data) {
     }
 }
 
-// function createListeners() {
-// Create the web worker (Firefox and other browsers)
-let inferenceWorker
-if (!chrome.offscreen) {
-    const workerUrl = chrome.runtime.getURL('worker.js')
-    inferenceWorker = new Worker(workerUrl, {
-        type: 'module'
-    })
-}
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    // if (message.type === 'toOutputField') {
+    // if (message.action === 'toOutputField') {
     //     gun.send(message.data)
     // }
     if (message.action !== 'send') return
@@ -144,8 +106,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // return true
 })
 
+// Create the web worker (Firefox and other browsers)
+let inferenceWorker
 if (!chrome.offscreen) {
+    const workerUrl = chrome.runtime.getURL('worker.js')
+    inferenceWorker = new Worker(workerUrl, {
+        type: 'module'
+    })
+
     inferenceWorker.onmessage = async (event) => {
+        // console.log(event)
         if (event.data.action === 'classification') {
             sendToForeground('toTopic', event.data.answer)
         } else if (event.data.status === 'partial') {
@@ -156,7 +126,6 @@ if (!chrome.offscreen) {
                 sendToForeground('toOutputField', event.data.output)
                 gun.send(event.data.output)
             }
-        } else if (event.data.action === 'cleanup') {
             sendToForeground('toInputField', '')
             sendToForeground('floatLeft')
         } else if (

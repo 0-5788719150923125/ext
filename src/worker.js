@@ -1,4 +1,5 @@
 import { pipeline, env } from '@xenova/transformers'
+import { delay, randomBetween } from './common.js'
 
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
@@ -46,11 +47,7 @@ class ClassifierSingleton {
 // Create generic classify function, which will be reused for the different types of events.
 const classify = async (context, options) => {
     // Get the pipeline instance. This will load and build the model when run for the first time.
-    let model = await ClassifierSingleton.getInstance((data) => {
-        // You can track the progress of the pipeline creation here.
-        // e.g., you can send `data` back to the UI to indicate a progress bar
-        // console.log('progress', data)
-    })
+    let model = await ClassifierSingleton.getInstance()
 
     // Actually run the model on the input text
     let question = 'What is this conversation about?'
@@ -59,16 +56,11 @@ const classify = async (context, options) => {
     return result
 }
 
-const delay = (ms) => new Promise((res) => setTimeout(res, ms))
-
 let tokenCount = 0
-// let isRunning = false
 let lastTokenTime = 0
 
 self.onmessage = async function (event) {
-    // if (isRunning) return
     if (event.data.action !== 'inference') return
-    // isRunning = true
     try {
         const { prompt, generatorOptions } = event.data
 
@@ -85,18 +77,12 @@ self.onmessage = async function (event) {
         }
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
-        let generator = await InferenceSingleton.getInstance((data) => {
-            // You can track the progress of the pipeline creation here.
-            // e.g., you can send `data` back to the UI to indicate a progress bar
-            self.postMessage(data)
-        })
+        let generator = await InferenceSingleton.getInstance()
 
-        // Reset the token count and last token time for each new inference
-        tokenCount = 0
-        lastTokenTime = Date.now()
+        const outputChars = []
 
-        // Actually run the model on the input text
-        const result = await generator(prompt, {
+        // Run the model on the input text
+        await generator(prompt, {
             ...generatorOptions,
             callback_function: (beams) => {
                 const partial = generator.tokenizer.decode(
@@ -105,35 +91,45 @@ self.onmessage = async function (event) {
                         skip_special_tokens: true
                     }
                 )
-                // const cleanedPartial = cleanPrediction(partial, prompt)
-                let cleanedPartial = partial.replace(prompt, '')
 
-                tokenCount++
-                const delay = tokenCount * 333
-                setTimeout(() => {
-                    self.postMessage({
-                        status: 'partial',
-                        input: cleanedPartial
-                    })
-                    lastTokenTime = Date.now()
-                }, delay)
+                const prediction = cleanPrediction(partial, prompt)
+
+                for (const i in prediction.split('')) {
+                    outputChars[i] = {
+                        char: prediction[i],
+                        delivered: outputChars[i]?.delivered
+                            ? outputChars[i].delivered
+                            : false
+                    }
+                }
             }
         })
 
-        // Wait until there are no more tokens generated within 3000 ms
-        while (Date.now() - lastTokenTime < 3000) {
-            await delay(1000)
+        let shouldReturn = false
+        while (true) {
+            await delay(randomBetween(200, 400))
+            let output = ''
+            for (const i in outputChars) {
+                shouldReturn = true
+                output += outputChars[i].char
+                if (!outputChars[i].delivered) {
+                    self.postMessage({
+                        status: 'partial',
+                        input: output
+                    })
+                    outputChars[i].delivered = true
+                    shouldReturn = false
+                    break
+                }
+            }
+            if (shouldReturn) {
+                self.postMessage({ status: 'complete', output })
+                break
+            }
         }
-
-        const pred = result[0].generated_text
-        const clean = cleanPrediction(pred, prompt)
-
-        self.postMessage({ status: 'complete', output: clean })
     } catch (err) {
         self.postMessage(err)
     }
-    self.postMessage({ action: 'cleanup' })
-    // isRunning = false
 }
 
 function cleanPrediction(output, prompt = '') {
