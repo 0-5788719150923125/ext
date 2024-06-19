@@ -68,11 +68,12 @@ persistButton.addEventListener('click', () => {
 
 // Retrieve the selected option from storage
 chrome.storage.local.get('frequency', (data) => {
-    let currentFrequency
+    let defaultFrequency = '0.1'
     if (data.frequency) {
-        currentFrequency = data.frequency
+        defaultFrequency = data.frequency
     }
-    displayFrequencyOptions(currentFrequency)
+    chrome.storage.local.set({ frequency: defaultFrequency })
+    displayFrequencyOptions(defaultFrequency)
 })
 
 function displayFrequencyOptions(currentFrequency) {
@@ -98,9 +99,7 @@ function displayFrequencyOptions(currentFrequency) {
         radio.name = 'option'
         radio.value = option.value
 
-        if (currentFrequency && currentFrequency === option.value) {
-            radio.checked = true
-        } else if (!currentFrequency && option.value === '1.0') {
+        if (currentFrequency === option.value) {
             radio.checked = true
         }
 

@@ -129,8 +129,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Set up a recurring prediction
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-    console.log(`registering alarm (${reason})`)
-
     chrome.alarms.create('doInference', {
         periodInMinutes: 1
         // delayInMinutes: 1
