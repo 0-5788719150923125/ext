@@ -6,12 +6,12 @@
   "permissions": [
     "activeTab",
     "alarms",
+    "offscreen",
     "storage",
     "tabCapture",
     "tabs",
     "unlimitedStorage",
-    "webRequest",
-    "offscreen"
+    "webRequest"
   ],
   "background": {
     "service_worker": "background.js",

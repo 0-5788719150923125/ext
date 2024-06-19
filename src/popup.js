@@ -209,7 +209,7 @@ function getRandomScreenPosition() {
     return { left, top }
 }
 
-const desiredWindowCount = 2
+const desiredWindowCount = 3
 
 if (isChromiumBased()) {
     chrome.windows.getAll({ populate: true }, (windows) => {

@@ -12,7 +12,7 @@ class InferenceSingleton {
     static instance = null
 
     static async getInstance(model, progress_callback = null) {
-        model = model !== null ? model : 'Xenova/LaMini-Neo-125M'
+        model = model === null ? 'Xenova/LaMini-Neo-125M' : model
 
         if (this.instance === null) {
             this.instance = pipeline(this.task, model, {
@@ -51,13 +51,10 @@ const classify = async (context, options) => {
     return await model(question, context, options)
 }
 
-let isBusy = false
-
 self.onmessage = async function (event) {
-    if (isBusy) return
-    if (event.data.action !== 'inference') return
-    isBusy = true
     try {
+        if (event.data.action !== 'inference') return
+
         // self.postMessage({ status: 'fail', event })
         const { prompt, generatorOptions } = event.data
 
@@ -131,9 +128,8 @@ self.onmessage = async function (event) {
             }
         }
     } catch (error) {
-        self.postMessage({ status: 'fail', data: { from: 'worker', error } })
+        self.postMessage({ status: 'error', error })
     }
-    isBusy = false
     self.postMessage({ status: 'complete', output: '' })
 }
 

@@ -24,6 +24,14 @@ export function sendToBackground(action, data) {
     chrome.runtime.sendMessage({ action, data })
 }
 
+export async function getSavedOption(option) {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(option, (data) => {
+            resolve(data[option])
+        })
+    })
+}
+
 export function eventHandler(event) {
     if (event.data.action === 'classification') {
         sendToForeground('toTopic', event.data.answer)
@@ -39,11 +47,18 @@ export function eventHandler(event) {
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')
     } else if (
-        !['progress', 'ready', 'done', 'download', 'initiate'].includes(
-            event.data.status
-        )
+        ![
+            'progress',
+            'ready',
+            'done',
+            'download',
+            'initiate',
+            'testing',
+            'warn'
+        ].includes(event.data.status)
     ) {
-        sendToBackground('toUnclassified', event)
+        console.warn(event)
+        sendToBackground('toUnclassified', event.data)
     } else if (event.data.status === 'error') {
         sendToBackground('toError', event.data)
     } else {

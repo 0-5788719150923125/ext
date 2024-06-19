@@ -1,6 +1,6 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
 import Gun from './gun.js'
-import { eventHandler, sendToForeground } from './common.js'
+import { eventHandler, getSavedOption, sendToForeground } from './common.js'
 
 class ContextHandler {
     constructor() {
@@ -169,14 +169,6 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         })
     })
 })
-
-async function getSavedOption(option) {
-    return new Promise((resolve) => {
-        chrome.storage.local.get(option, (data) => {
-            resolve(data[option])
-        })
-    })
-}
 
 async function submitInferenceRequest(prompt, options) {
     const args = {
