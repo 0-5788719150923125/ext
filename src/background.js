@@ -147,7 +147,6 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
             const roll = Math.random()
 
             const model = await getSavedOption('model')
-            console.log('saved model is:', model)
 
             await submitInferenceRequest(context.get(), {
                 model,

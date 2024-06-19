@@ -146,7 +146,9 @@ function displayModelOptions(currentModel) {
     // Create the radio button options
     const options = [
         { value: 'Xenova/LaMini-Neo-125M', label: 'EleutherAI/GPT-Neo-125M' },
-        { value: 'Xenova/opt-350m', label: 'Meta/opt-350m' }
+        { value: 'Xenova/opt-350m', label: 'Meta/opt-350m' },
+        { value: 'Xenova/pythia-70m', label: 'Xenova/pythia-70m' },
+        { value: 'Xenova/gpt2', label: 'OpenAI/gpt2' }
     ]
 
     options.forEach((option) => {
