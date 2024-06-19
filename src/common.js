@@ -20,7 +20,11 @@ export function sendToForeground(action, data) {
     chrome.runtime.sendMessage({ action, data })
 }
 
-export function eventHandler(event, gun = null) {
+export function sendToBackground(action, data) {
+    chrome.runtime.sendMessage({ action, data })
+}
+
+export function eventHandler(event) {
     if (event.data.action === 'classification') {
         sendToForeground('toTopic', event.data.answer)
     } else if (event.data.status === 'partial') {
@@ -30,7 +34,7 @@ export function eventHandler(event, gun = null) {
         if (event.data.output.length > 2) {
             console.log(event.data.output)
             sendToForeground('toOutputField', event.data.output)
-            if (gun) gun.send(event.data.output)
+            sendToBackground('toDatabase', event.data.output)
         }
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')

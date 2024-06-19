@@ -81,7 +81,6 @@ async function createOffscreenDocument() {
 // Function to send a message to the off-screen document (Chrome Manifest V3)
 async function sendMessageToOffscreen(data) {
     try {
-        console.log('sending message offscreen')
         if (!offscreenDocument) {
             offscreenDocument = await createOffscreenDocument()
         }
@@ -121,12 +120,9 @@ if (chrome.offscreen) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    // if (message.action === 'toOutputField') {
-    //     gun.send(message.data)
-    // }
-    // if (message.action === 'createWorker') {
-    //     inferenceWorker.postMessage(message.data)
-    // }
+    if (message.action === 'toDatabase') {
+        gun.send(message.data)
+    }
     if (message.action !== 'send') return
     gun.send(message.text)
 

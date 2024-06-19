@@ -8,14 +8,10 @@ const inferenceWorker = new Worker('worker.js', { type: 'module' })
 
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log(message.action)
     if (message.action !== 'createWorker') return
     inferenceWorker.postMessage(message.data)
 })
 
-console.log('doing offscreen things')
-
 inferenceWorker.onmessage = async (event) => {
-    console.log(event)
     eventHandler(event)
 }
