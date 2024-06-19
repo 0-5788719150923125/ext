@@ -140,8 +140,27 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 
     // Listen for a specific event and perform an action
     chrome.alarms.onAlarm.addListener(async (alarm) => {
-        console.log('running for foreground')
         if (alarm.name === 'doInference') {
+            // Retrieve the selected option from storage
+            chrome.storage.local.get('selectedOption', (data) => {
+                if (chrome.runtime.lastError) {
+                    console.error(
+                        'Error retrieving selected option from storage:',
+                        chrome.runtime.lastError
+                    )
+                    return
+                }
+
+                const selectedOption = data.selectedOption
+                if (selectedOption) {
+                    console.log(
+                        'Selected option retrieved from storage:',
+                        selectedOption
+                    )
+                    // Perform any necessary actions based on the selected option
+                }
+            })
+
             if (isRunning) return
             isRunning = true
             await submitInferenceRequest(context.get(), {
@@ -163,7 +182,6 @@ async function submitInferenceRequest(prompt, options) {
         generatorOptions: options
     }
     if (!chrome.offscreen) {
-        console.log('using inference worker')
         inferenceWorker.postMessage(args)
     } else {
         await sendMessageToOffscreen(args)

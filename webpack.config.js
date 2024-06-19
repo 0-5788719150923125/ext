@@ -35,8 +35,8 @@ const config = {
                     to: '.'
                 },
                 {
-                    from: 'public/icons',
-                    to: './icons'
+                    from: 'public/static',
+                    to: './static'
                 },
                 {
                     from: `public/manifest.${browser}.json`,

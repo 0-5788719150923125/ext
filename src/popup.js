@@ -68,6 +68,50 @@ persistButton.addEventListener('click', () => {
     })
 })
 
+// Get the selection button element
+const selectionButton = document.getElementById('selection')
+
+// Create the selection box element
+const selectionBox = document.createElement('div')
+selectionBox.id = 'selection-box'
+selectionBox.className = 'selection-box'
+
+// Create the radio button options
+const options = [
+    { value: 'A', label: '100%' },
+    { value: 'B', label: '50%' },
+    { value: 'C', label: '10%' }
+]
+
+options.forEach((option) => {
+    const label = document.createElement('label')
+    const radio = document.createElement('input')
+    radio.type = 'radio'
+    radio.name = 'option'
+    radio.value = option.value
+    label.appendChild(radio)
+    label.appendChild(document.createTextNode(` ${option.label}`))
+    selectionBox.appendChild(label)
+})
+
+// Append the selection box to the selection button
+selectionButton.appendChild(selectionBox)
+
+// Toggle the selection box visibility when the selection button is clicked
+selectionButton.addEventListener('click', () => {
+    selectionBox.style.display =
+        selectionBox.style.display === 'block' ? 'none' : 'block'
+})
+
+// Handle the selection change event
+selectionBox.addEventListener('change', (event) => {
+    const selectedOption = event.target.value
+    console.log('Selected option:', selectedOption)
+    chrome.storage.local.set({ selectedOption }, () => {
+        console.log('Selected option saved to storage')
+    })
+})
+
 function isChromiumBased() {
     const userAgent = navigator.userAgent.toLowerCase()
     return userAgent.includes('chrome') || userAgent.includes('chromium')
