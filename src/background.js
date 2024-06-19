@@ -1,5 +1,6 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
 import Gun from './gun.js'
+import { eventHandler, sendToForeground } from './common.js'
 
 class ContextHandler {
     constructor() {
@@ -38,11 +39,6 @@ gun.subscribe('trade').on(async (node) => {
     context.add(message)
     sendToForeground('toOutputField', message)
 })
-
-// Function to send data to the popup
-function sendToForeground(action, data) {
-    chrome.runtime.sendMessage({ action, data })
-}
 
 let offscreenDocument = null
 let offscreenDocumentCreated = false
@@ -85,6 +81,7 @@ async function createOffscreenDocument() {
 // Function to send a message to the off-screen document (Chrome Manifest V3)
 async function sendMessageToOffscreen(data) {
     try {
+        console.log('sending message offscreen')
         if (!offscreenDocument) {
             offscreenDocument = await createOffscreenDocument()
         }
@@ -94,9 +91,41 @@ async function sendMessageToOffscreen(data) {
     }
 }
 
+// Create the web worker
+// const inferenceWorker = new Worker('worker.js', { type: 'module' })
+
+// Listen for messages from the background script
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//     if (!message.action !== 'createWorker') return
+//     inferenceWorker.postMessage(message.data)
+// })
+
+// inferenceWorker.onmessage = async (event) => {
+//     eventHandler(event)
+// }
+
+// Create the web worker (Firefox and other browsers)
+let inferenceWorker
+if (chrome.offscreen) {
+    // inferenceWorker = new Worker('worker.js', { type: 'module' })
+    // pass
+} else {
+    const workerUrl = chrome.runtime.getURL('worker.js')
+    inferenceWorker = new Worker(workerUrl, {
+        type: 'module'
+    })
+
+    inferenceWorker.onmessage = async (event) => {
+        eventHandler(event, gun)
+    }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // if (message.action === 'toOutputField') {
     //     gun.send(message.data)
+    // }
+    // if (message.action === 'createWorker') {
+    //     inferenceWorker.postMessage(message.data)
     // }
     if (message.action !== 'send') return
     gun.send(message.text)
@@ -106,43 +135,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // return true
 })
 
-// Create the web worker (Firefox and other browsers)
-let inferenceWorker
-if (!chrome.offscreen) {
-    const workerUrl = chrome.runtime.getURL('worker.js')
-    inferenceWorker = new Worker(workerUrl, {
-        type: 'module'
-    })
-
-    inferenceWorker.onmessage = async (event) => {
-        // console.log(event)
-        if (event.data.action === 'classification') {
-            sendToForeground('toTopic', event.data.answer)
-        } else if (event.data.status === 'partial') {
-            sendToForeground('floatRight')
-            sendToForeground('toInputField', event.data.input + '//:fold')
-        } else if (event.data.status === 'complete') {
-            if (event.data.output.length > 2) {
-                sendToForeground('toOutputField', event.data.output)
-                gun.send(event.data.output)
-            }
-            sendToForeground('toInputField', '')
-            sendToForeground('floatLeft')
-        } else if (
-            !['progress', 'ready', 'done', 'download', 'initiate'].includes(
-                event.data.status
-            )
-        ) {
-            console.log(event)
-        } else {
-            sendToForeground('toInputField', '')
-            sendToForeground('floatLeft')
-        }
-    }
-}
-
 // Set up a recurring prediction
-
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     console.log(reason)
     // if (reason !== 'install' 'update') {

@@ -28,9 +28,7 @@ class InferenceSingleton {
 
 class ClassifierSingleton {
     static task = 'question-answering'
-    // static model = 'Xenova/pythia-14m'
     static model = 'Xenova/distilbert-base-uncased-distilled-squad'
-    // static model = 'Xenova/llama2.c-stories15M'
     static instance = null
 
     static async getInstance(progress_callback = null) {
@@ -50,14 +48,12 @@ const classify = async (context, options) => {
     let model = await ClassifierSingleton.getInstance()
 
     // Actually run the model on the input text
-    let question = 'What is this conversation about?'
+    let question =
+        'In 3-5 words, what is this conversation about? What are we discussing?'
     let result = await model(question, context, options)
 
     return result
 }
-
-let tokenCount = 0
-let lastTokenTime = 0
 
 self.onmessage = async function (event) {
     if (event.data.action !== 'inference') return
@@ -107,7 +103,7 @@ self.onmessage = async function (event) {
 
         let shouldReturn = false
         while (true) {
-            await delay(randomBetween(200, 400))
+            await delay(randomBetween(100, 300))
             let output = ''
             for (const i in outputChars) {
                 shouldReturn = true
