@@ -7,12 +7,6 @@
   "background": {
     "scripts": ["background.js"]
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
-    }
-  ],
   "page_action": {
     "default_icon": "static/icon.png",
     "browser_style": true
@@ -24,11 +18,5 @@
       "128": "static/icon.png"
     }
   },
-  "permissions": [
-    "activeTab",
-    "alarms",
-    "storage",
-    "unlimitedStorage",
-    "webRequest"
-  ]
+  "permissions": ["activeTab", "alarms", "storage", "unlimitedStorage"]
 }
