@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Link",
-  "description": "Feed The Machine",
+  "name": "The Link",
+  "description": "Feeding Machines",
   "version": "0.0.1",
   "permissions": [
     "activeTab",
@@ -30,7 +30,7 @@
       "24": "static/icon.png",
       "32": "static/icon.png"
     },
-    "default_title": "Link",
+    "default_title": "The Link",
     "default_popup": "index.html"
   },
   "content_security_policy": {
