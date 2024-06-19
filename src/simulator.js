@@ -185,10 +185,43 @@ function moveAtomLinear(old_x, old_y, new_x, new_y, damping) {
     const dx = (new_x - old_x) * damping
     const dy = (new_y - old_y) * damping
 
-    const updated_x = old_x + dx
-    const updated_y = old_y + dy
+    const distance = Math.sqrt(dx * dx + dy * dy)
+    const threshold = 5 // Adjust this value to control when the elastic effect starts
 
-    return { x: updated_x, y: updated_y }
+    if (distance < threshold) {
+        const elasticFactor = (threshold - distance) / threshold
+        const elasticDamping = 0.1 // Adjust this value to control the strength of the elastic effect
+        const elasticDx = dx * elasticFactor * elasticDamping
+        const elasticDy = dy * elasticFactor * elasticDamping
+
+        const updated_x = old_x + dx + elasticDx
+        const updated_y = old_y + dy + elasticDy
+
+        // Check if the atom hits a wall
+        if (
+            updated_x <= baseRadius ||
+            updated_x >= canvas.width - baseRadius ||
+            updated_y <= baseRadius ||
+            updated_y >= canvas.height - baseRadius
+        ) {
+            // If the atom hits a wall, reduce its momentum smoothly
+            const momentumDamping = 0.9 // Adjust this value to control the momentum decay
+            const momentumDx = dx * momentumDamping
+            const momentumDy = dy * momentumDamping
+
+            return {
+                x: old_x + momentumDx,
+                y: old_y + momentumDy
+            }
+        }
+
+        return { x: updated_x, y: updated_y }
+    } else {
+        const updated_x = old_x + dx
+        const updated_y = old_y + dy
+
+        return { x: updated_x, y: updated_y }
+    }
 }
 
 function getRandomInt(min, max) {
@@ -402,6 +435,39 @@ async function cycleAtoms() {
 
 // Add an event listener to resize the canvas when the window is resized
 window.addEventListener('resize', resizeCanvas)
+
+let prevWindowX = window.screenX
+let prevWindowY = window.screenY
+
+let isInitialized = false
+
+function handleWindowMove() {
+    if (!isInitialized) {
+        // Initialize atom positions based on the initial window position relative to the current monitor
+        const monitorLeft = screen.availLeft || 0
+        const monitorTop = screen.availTop || 0
+        Object.values(heads).forEach((atom) => {
+            atom.targetX += window.screenX - monitorLeft
+            atom.targetY += window.screenY - monitorTop
+        })
+        isInitialized = true
+    } else {
+        const deltaX = window.screenX - prevWindowX
+        const deltaY = window.screenY - prevWindowY
+        Object.values(heads).forEach((atom) => {
+            atom.targetX += deltaX
+            atom.targetY += deltaY
+        })
+    }
+
+    prevWindowX = window.screenX
+    prevWindowY = window.screenY
+
+    requestAnimationFrame(handleWindowMove)
+}
+
+// Start tracking window movement
+handleWindowMove()
 
 // Initial canvas resize
 resizeCanvas()
