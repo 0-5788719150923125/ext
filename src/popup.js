@@ -14,6 +14,7 @@ function updateTrainLink(word) {
 // Generic functions used to update the UI
 function updateOutputUI(string) {
     outputElement.innerText = string
+    outputElement.style.color = 'black'
 }
 
 function updateInputUI(string) {
@@ -23,6 +24,11 @@ function updateInputUI(string) {
 function updateTopicUI(string) {
     topicElement.innerText = string
     updateTrainLink(string.slice(0, 256))
+}
+
+function updateErrorUI(string) {
+    outputElement.innerText = string
+    outputElement.style.color = 'red'
 }
 
 // Listen for messages from background workers
@@ -43,6 +49,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break
         case 'toTopic':
             updateTopicUI(data)
+            break
+        case 'toErrorField':
+            updateErrorUI(data)
             break
     }
 })
@@ -155,7 +164,11 @@ function displayModelOptions(currentModel) {
         { value: 'Xenova/LaMini-Neo-125M', label: 'EleutherAI/GPT-Neo-125M' },
         { value: 'Xenova/opt-350m', label: 'Meta/opt-350m' },
         { value: 'Xenova/pythia-70m', label: 'Xenova/pythia-70m' },
-        { value: 'Xenova/gpt2', label: 'OpenAI/gpt2' }
+        { value: 'Xenova/gpt2', label: 'OpenAI/gpt2' },
+        {
+            value: 'Xenova/LaMini-Cerebras-256M',
+            label: 'LaMini/Cerebras-256M'
+        }
     ]
 
     options.forEach((option) => {
@@ -209,7 +222,7 @@ function getRandomScreenPosition() {
     return { left, top }
 }
 
-const desiredWindowCount = 3
+const desiredWindowCount = 2
 
 if (isChromiumBased()) {
     chrome.windows.getAll({ populate: true }, (windows) => {

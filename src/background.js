@@ -122,7 +122,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             console.warn(message.data)
             break
         case 'toLogger':
-            console.log(message.data)
+            console.warn(message.data)
+            break
+        case 'toError':
+            console.error(message.data)
             break
     }
 })
@@ -182,3 +185,9 @@ async function submitInferenceRequest(prompt, options) {
         await sendMessageToOffscreen(args)
     }
 }
+
+// This is a hack, maybe an exploit, but it used to be considered a feature by Google:
+// https://stackoverflow.com/questions/66618136/persistent-service-worker-in-chrome-extension/66618269#66618269
+const keepAlive = () => setInterval(chrome.runtime.getPlatformInfo, 20e3)
+chrome.runtime.onStartup.addListener(keepAlive)
+keepAlive()

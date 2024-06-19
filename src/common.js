@@ -46,6 +46,12 @@ export function eventHandler(event) {
         }
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')
+    } else if (event.data.status === 'error') {
+        sendToBackground('toError', event.data)
+        sendToForeground(
+            'toErrorField',
+            JSON.stringify({ error: event.data.error.message })
+        )
     } else if (
         ![
             'progress',
@@ -57,10 +63,7 @@ export function eventHandler(event) {
             'warn'
         ].includes(event.data.status)
     ) {
-        console.warn(event)
         sendToBackground('toUnclassified', event.data)
-    } else if (event.data.status === 'error') {
-        sendToBackground('toError', event.data)
     } else {
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')
