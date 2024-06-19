@@ -9,15 +9,13 @@ env.allowLocalModels = true
 // Use the Singleton pattern to enable lazy construction of the pipeline.
 class InferenceSingleton {
     static task = 'text-generation'
-    // static model = 'Xenova/pythia-14m'
-    // static model = 'Xenova/pythia-31m'
-    static model = 'Xenova/LaMini-Neo-125M'
-    // static model = 'Xenova/llama2.c-stories15M'
     static instance = null
 
-    static async getInstance(progress_callback = null) {
+    static async getInstance(model, progress_callback = null) {
+        model = model ? model : 'Xenova/LaMini-Neo-125M'
+
         if (this.instance === null) {
-            this.instance = pipeline(this.task, this.model, {
+            this.instance = pipeline(this.task, model, {
                 progress_callback
             })
         }
@@ -28,12 +26,11 @@ class InferenceSingleton {
 
 class ClassifierSingleton {
     static task = 'question-answering'
-    static model = 'Xenova/distilbert-base-uncased-distilled-squad'
     static instance = null
 
-    static async getInstance(progress_callback = null) {
+    static async getInstance(model, progress_callback = null) {
         if (this.instance === null) {
-            this.instance = pipeline(this.task, this.model, {
+            this.instance = pipeline(this.task, model, {
                 progress_callback
             })
         }
@@ -42,17 +39,16 @@ class ClassifierSingleton {
     }
 }
 
-// Create generic classify function, which will be reused for the different types of events.
+// Create generic classify function
 const classify = async (context, options) => {
-    // Get the pipeline instance. This will load and build the model when run for the first time.
-    let model = await ClassifierSingleton.getInstance()
+    let model = await ClassifierSingleton.getInstance(
+        'Xenova/distilbert-base-uncased-distilled-squad'
+    )
 
-    // Actually run the model on the input text
     let question =
         'In 3-5 words, what is this conversation about? What are we discussing?'
-    let result = await model(question, context, options)
 
-    return result
+    return await model(question, context, options)
 }
 
 self.onmessage = async function (event) {
@@ -77,7 +73,9 @@ self.onmessage = async function (event) {
         if (!generatorOptions.should_infer) return
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
-        let generator = await InferenceSingleton.getInstance()
+        let generator = await InferenceSingleton.getInstance(
+            generatorOptions?.model
+        )
 
         const outputChars = []
 

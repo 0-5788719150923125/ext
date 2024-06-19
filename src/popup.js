@@ -66,7 +66,7 @@ persistButton.addEventListener('click', () => {
     })
 })
 
-// Retrieve the selected option from storage
+// Retrieve the frequency option from storage
 chrome.storage.local.get('frequency', (data) => {
     let defaultFrequency = '0.1'
     if (data.frequency) {
@@ -82,8 +82,8 @@ function displayFrequencyOptions(currentFrequency) {
 
     // Create the selection box element
     const selectionBox = document.createElement('div')
-    selectionBox.id = 'selection-box'
-    selectionBox.className = 'selection-box'
+    selectionBox.id = 'selection-box frequency'
+    selectionBox.className = 'selection-box frequency'
 
     // Create the radio button options
     const options = [
@@ -96,7 +96,7 @@ function displayFrequencyOptions(currentFrequency) {
         const label = document.createElement('label')
         const radio = document.createElement('input')
         radio.type = 'radio'
-        radio.name = 'option'
+        radio.name = 'frequency'
         radio.value = option.value
 
         if (currentFrequency === option.value) {
@@ -121,6 +121,63 @@ function displayFrequencyOptions(currentFrequency) {
     selectionBox.addEventListener('change', (event) => {
         const frequency = event.target.value
         chrome.storage.local.set({ frequency })
+    })
+}
+
+// Retrieve the model option from storage
+chrome.storage.local.get('model', (data) => {
+    let defaultModel = 'Xenova/LaMini-Neo-125M'
+    if (data.model) {
+        defaultModel = data.model
+    }
+    chrome.storage.local.set({ model: defaultModel })
+    displayModelOptions(defaultModel)
+})
+
+function displayModelOptions(currentModel) {
+    // Get the selection button element
+    const modelToggle = document.getElementById('models')
+
+    // Create the selection box element
+    const selectionBox = document.createElement('div')
+    selectionBox.id = 'selection-box models'
+    selectionBox.className = 'selection-box models'
+
+    // Create the radio button options
+    const options = [
+        { value: 'Xenova/LaMini-Neo-125M', label: 'EleutherAI/GPT-Neo-125M' },
+        { value: 'Xenova/opt-350m', label: 'Meta/opt-350m' }
+    ]
+
+    options.forEach((option) => {
+        const label = document.createElement('label')
+        const radio = document.createElement('input')
+        radio.type = 'radio'
+        radio.name = 'model'
+        radio.value = option.value
+
+        if (currentModel === option.value) {
+            radio.checked = true
+        }
+
+        label.appendChild(radio)
+        label.appendChild(document.createTextNode(` ${option.label}`))
+        selectionBox.appendChild(label)
+    })
+
+    // Append the selection box to the selection button
+    modelToggle.appendChild(selectionBox)
+
+    // Toggle the selection box visibility when the selection button is clicked
+    modelToggle.addEventListener('click', () => {
+        selectionBox.style.display =
+            selectionBox.style.display === 'block' ? 'none' : 'block'
+    })
+
+    // Handle the selection change event
+    selectionBox.addEventListener('change', (event) => {
+        const model = event.target.value
+        chrome.storage.local.set({ model: model })
     })
 }
 

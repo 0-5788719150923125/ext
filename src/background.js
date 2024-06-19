@@ -139,14 +139,18 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         if (alarm.name !== 'doInference') return
         // Retrieve frequency option from storage
         chrome.storage.local.get('frequency', async (data) => {
-            let currentFrequency
+            let currentFrequency = 0.1
             if (data.frequency) {
                 currentFrequency = Number(data.frequency)
             }
 
             const roll = Math.random()
 
+            const model = await getSavedOption('model')
+            console.log('saved model is:', model)
+
             await submitInferenceRequest(context.get(), {
+                model,
                 do_sample: true,
                 temperature: 0.45,
                 max_new_tokens: 59,
@@ -158,6 +162,14 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         })
     })
 })
+
+async function getSavedOption(option) {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(option, (data) => {
+            resolve(data[option])
+        })
+    })
+}
 
 async function submitInferenceRequest(prompt, options) {
     const args = {
