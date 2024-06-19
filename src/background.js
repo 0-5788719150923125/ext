@@ -80,35 +80,29 @@ async function createOffscreenDocument() {
 
 // Function to send a message to the off-screen document (Chrome Manifest V3)
 async function sendMessageToOffscreen(data) {
-    try {
-        if (!offscreenDocument) {
-            offscreenDocument = await createOffscreenDocument()
-        }
-        chrome.runtime.sendMessage({ action: 'createWorker', data })
-    } catch (err) {
-        console.error(err)
+    if (!offscreenDocument) {
+        offscreenDocument = await createOffscreenDocument()
     }
+
+    chrome.runtime.sendMessage({ action: 'createWorker', data }, (response) => {
+        // This will always fail when extension popup is closed
+        if (chrome.runtime.lastError) {
+            // Handle the case when the receiving end does not exist
+            if (typeof callback === 'function') {
+                callback({ error: chrome.runtime.lastError.message })
+            }
+        } else {
+            // Handle the successful response
+            if (typeof callback === 'function') {
+                callback(response)
+            }
+        }
+    })
 }
 
-// Create the web worker
-// const inferenceWorker = new Worker('worker.js', { type: 'module' })
-
-// Listen for messages from the background script
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//     if (!message.action !== 'createWorker') return
-//     inferenceWorker.postMessage(message.data)
-// })
-
-// inferenceWorker.onmessage = async (event) => {
-//     eventHandler(event)
-// }
-
-// Create the web worker (Firefox and other browsers)
+// Create the web worker directly (Firefox, Manifest v2)
 let inferenceWorker
-if (chrome.offscreen) {
-    // inferenceWorker = new Worker('worker.js', { type: 'module' })
-    // pass
-} else {
+if (!chrome.offscreen) {
     const workerUrl = chrome.runtime.getURL('worker.js')
     inferenceWorker = new Worker(workerUrl, {
         type: 'module'
@@ -120,25 +114,23 @@ if (chrome.offscreen) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'toDatabase') {
-        gun.send(message.data)
+    switch (message.action) {
+        case 'toDatabase':
+            gun.send(message.data)
+            break
+        case 'toUnclassified':
+            console.warn(message.data)
+            break
+        case 'toLogger':
+            console.log(message.data)
+            break
     }
-    if (message.action !== 'send') return
-    gun.send(message.text)
-
-    // return true to indicate we will send a response asynchronously
-    // see https://stackoverflow.com/a/46628145 for more information
-    // return true
 })
 
 // Set up a recurring prediction
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
-    console.log(reason)
-    // if (reason !== 'install' 'update') {
-    //     return
-    // }
-    console.log('registering alarm')
-    // Create an alarm so we have something to look at in the demo
+    console.log(`registering alarm (${reason})`)
+
     chrome.alarms.create('doInference', {
         periodInMinutes: 1
         // delayInMinutes: 1
@@ -152,32 +144,28 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         if (alarm.name === 'doInference') {
             if (isRunning) return
             isRunning = true
-            if (!chrome.offscreen) {
-                inferenceWorker.postMessage({
-                    action: 'inference',
-                    prompt: context.get(),
-                    generatorOptions: {
-                        do_sample: true,
-                        temperature: 0.45,
-                        max_new_tokens: 59,
-                        repetition_penalty: 1.001,
-                        no_repeat_ngram_size: 11
-                    }
-                })
-            } else {
-                sendMessageToOffscreen({
-                    action: 'inference',
-                    prompt: context.get(),
-                    generatorOptions: {
-                        do_sample: true,
-                        temperature: 0.3,
-                        max_new_tokens: 23,
-                        repetition_penalty: 1.001,
-                        no_repeat_ngram_size: 11
-                    }
-                })
-            }
+            await submitInferenceRequest(context.get(), {
+                do_sample: true,
+                temperature: 0.45,
+                max_new_tokens: 59,
+                repetition_penalty: 1.1,
+                no_repeat_ngram_size: 7
+            })
             isRunning = false
         }
     })
 })
+
+async function submitInferenceRequest(prompt, options) {
+    const args = {
+        action: 'inference',
+        prompt: prompt,
+        generatorOptions: options
+    }
+    if (!chrome.offscreen) {
+        console.log('using inference worker')
+        inferenceWorker.postMessage(args)
+    } else {
+        await sendMessageToOffscreen(args)
+    }
+}

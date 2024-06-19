@@ -17,11 +17,21 @@ export function randomBetween(min, max) {
 
 // Function to send data to the popup
 export function sendToForeground(action, data) {
-    chrome.runtime.sendMessage({ action, data })
+    try {
+        chrome.runtime.sendMessage({ action, data })
+    } catch (err) {
+        console.log('failed to send to foreground')
+        console.error(err)
+    }
 }
 
 export function sendToBackground(action, data) {
-    chrome.runtime.sendMessage({ action, data })
+    try {
+        chrome.runtime.sendMessage({ action, data })
+    } catch (err) {
+        console.log('failed to send to background')
+        console.error(err)
+    }
 }
 
 export function eventHandler(event) {
@@ -32,9 +42,9 @@ export function eventHandler(event) {
         sendToForeground('toInputField', event.data.input + '//:fold')
     } else if (event.data.status === 'complete') {
         if (event.data.output.length > 2) {
-            console.log(event.data.output)
             sendToForeground('toOutputField', event.data.output)
             sendToBackground('toDatabase', event.data.output)
+            sendToBackground('toLogger', event.data.output)
         }
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')
@@ -43,7 +53,7 @@ export function eventHandler(event) {
             event.data.status
         )
     ) {
-        console.log(event)
+        sendToBackground('toUnclassified', { error: event })
     } else {
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')

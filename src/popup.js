@@ -47,7 +47,7 @@ inputElement.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter') return
 
     const message = {
-        action: 'send',
+        action: 'toDatabase',
         text: event.target.value
     }
 
@@ -87,7 +87,7 @@ function getRandomScreenPosition() {
     return { left, top }
 }
 
-const desiredWindowCount = 3
+const desiredWindowCount = 2
 
 if (isChromiumBased()) {
     chrome.windows.getAll({ populate: true }, (windows) => {
