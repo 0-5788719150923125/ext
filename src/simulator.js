@@ -16,7 +16,7 @@ const repulsionStrength = 0.1
 let heads = {}
 let tails = {}
 
-const canvas = document.getElementById('void')
+const canvas = document.getElementById('slate')
 const ctx = canvas.getContext('2d')
 canvas.classList.add('overlay')
 

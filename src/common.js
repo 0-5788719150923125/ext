@@ -17,21 +17,11 @@ export function randomBetween(min, max) {
 
 // Function to send data to the popup
 export function sendToForeground(action, data) {
-    try {
-        chrome.runtime.sendMessage({ action, data })
-    } catch (err) {
-        console.log('failed to send to foreground')
-        console.error(err)
-    }
+    chrome.runtime.sendMessage({ action, data })
 }
 
 export function sendToBackground(action, data) {
-    try {
-        chrome.runtime.sendMessage({ action, data })
-    } catch (err) {
-        console.log('failed to send to background')
-        console.error(err)
-    }
+    chrome.runtime.sendMessage({ action, data })
 }
 
 export function eventHandler(event) {

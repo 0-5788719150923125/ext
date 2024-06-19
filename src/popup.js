@@ -37,8 +37,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'toTopic':
             updateTopicUI(data)
             break
-        default:
-            console.log(message)
     }
 })
 
@@ -68,49 +66,64 @@ persistButton.addEventListener('click', () => {
     })
 })
 
-// Get the selection button element
-const selectionButton = document.getElementById('selection')
-
-// Create the selection box element
-const selectionBox = document.createElement('div')
-selectionBox.id = 'selection-box'
-selectionBox.className = 'selection-box'
-
-// Create the radio button options
-const options = [
-    { value: 'A', label: '100%' },
-    { value: 'B', label: '50%' },
-    { value: 'C', label: '10%' }
-]
-
-options.forEach((option) => {
-    const label = document.createElement('label')
-    const radio = document.createElement('input')
-    radio.type = 'radio'
-    radio.name = 'option'
-    radio.value = option.value
-    label.appendChild(radio)
-    label.appendChild(document.createTextNode(` ${option.label}`))
-    selectionBox.appendChild(label)
+// Retrieve the selected option from storage
+chrome.storage.local.get('frequency', (data) => {
+    let currentFrequency
+    if (data.frequency) {
+        currentFrequency = data.frequency
+    }
+    displayFrequencyOptions(currentFrequency)
 })
 
-// Append the selection box to the selection button
-selectionButton.appendChild(selectionBox)
+function displayFrequencyOptions(currentFrequency) {
+    // Get the selection button element
+    const frequencyToggle = document.getElementById('frequency')
 
-// Toggle the selection box visibility when the selection button is clicked
-selectionButton.addEventListener('click', () => {
-    selectionBox.style.display =
-        selectionBox.style.display === 'block' ? 'none' : 'block'
-})
+    // Create the selection box element
+    const selectionBox = document.createElement('div')
+    selectionBox.id = 'selection-box'
+    selectionBox.className = 'selection-box'
 
-// Handle the selection change event
-selectionBox.addEventListener('change', (event) => {
-    const selectedOption = event.target.value
-    console.log('Selected option:', selectedOption)
-    chrome.storage.local.set({ selectedOption }, () => {
-        console.log('Selected option saved to storage')
+    // Create the radio button options
+    const options = [
+        { value: '1.0', label: '100%' },
+        { value: '0.5', label: '50%' },
+        { value: '0.1', label: '10%' }
+    ]
+
+    options.forEach((option) => {
+        const label = document.createElement('label')
+        const radio = document.createElement('input')
+        radio.type = 'radio'
+        radio.name = 'option'
+        radio.value = option.value
+
+        if (currentFrequency && currentFrequency === option.value) {
+            radio.checked = true
+        } else if (!currentFrequency && option.value === '1.0') {
+            radio.checked = true
+        }
+
+        label.appendChild(radio)
+        label.appendChild(document.createTextNode(` ${option.label}`))
+        selectionBox.appendChild(label)
     })
-})
+
+    // Append the selection box to the selection button
+    frequencyToggle.appendChild(selectionBox)
+
+    // Toggle the selection box visibility when the selection button is clicked
+    frequencyToggle.addEventListener('click', () => {
+        selectionBox.style.display =
+            selectionBox.style.display === 'block' ? 'none' : 'block'
+    })
+
+    // Handle the selection change event
+    selectionBox.addEventListener('change', (event) => {
+        const frequency = event.target.value
+        chrome.storage.local.set({ frequency })
+    })
+}
 
 function isChromiumBased() {
     const userAgent = navigator.userAgent.toLowerCase()
