@@ -149,16 +149,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
             currentFrequency = Number(frequency)
         }
 
-        const roll = Math.random()
-
-        console.log(
-            'model:',
-            model,
-            'frequency:',
-            currentFrequency,
-            'roll:',
-            roll
-        )
+        console.log('model:', model, 'frequency:', currentFrequency)
 
         await submitInferenceRequest(context.get(), {
             model,
@@ -167,8 +158,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
             max_new_tokens: 59,
             repetition_penalty: 1.1,
             no_repeat_ngram_size: 7,
-            should_classify: true,
-            should_infer: roll <= currentFrequency ? true : false
+            frequency: currentFrequency
         })
     })
 })

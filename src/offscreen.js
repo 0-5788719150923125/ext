@@ -8,9 +8,13 @@ import { eventHandler } from './common.js'
 const inferenceWorker = new Worker('worker.js', { type: 'module' })
 
 // Listen for messages from the background script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action !== 'createWorker') return
-    inferenceWorker.postMessage(message.data)
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    try {
+        if (message.action !== 'createWorker') return
+        inferenceWorker.postMessage(message.data)
+    } catch (error) {
+        eventHandler({ data: error })
+    }
 })
 
 inferenceWorker.onmessage = async (event) => {

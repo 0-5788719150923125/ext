@@ -55,24 +55,22 @@ self.onmessage = async function (event) {
     try {
         if (event.data.action !== 'inference') return
 
-        // self.postMessage({ status: 'fail', event })
         const { prompt, generatorOptions } = event.data
 
-        if (generatorOptions.should_classify) {
-            // Get the pipeline instance. This will load and build the model when run for the first time.
-            let output = await classify(prompt, generatorOptions)
-            let answer = cleanPrediction(output.answer)
+        // Get the pipeline instance. This will load and build the model when run for the first time.
+        let output = await classify(prompt, generatorOptions)
+        let answer = cleanPrediction(output.answer)
 
-            if (answer.length > 3) {
-                self.postMessage({
-                    action: 'classification',
-                    answer,
-                    score: output.score
-                })
-            }
+        if (answer.length > 3) {
+            self.postMessage({
+                action: 'classification',
+                answer,
+                score: output.score
+            })
         }
 
-        if (!generatorOptions.should_infer) return
+        const roll = Math.random()
+        if (roll >= generatorOptions.frequency) return
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let generator = await InferenceSingleton.getInstance(
