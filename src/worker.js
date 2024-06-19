@@ -4,7 +4,7 @@ import { delay, randomBetween } from './common.js'
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
 env.backends.onnx.wasm.numThreads = 1
-env.allowLocalModels = true
+env.allowLocalModels = false
 
 // Use the Singleton pattern to enable lazy construction of the pipeline.
 class InferenceSingleton {
@@ -12,7 +12,7 @@ class InferenceSingleton {
     static instance = null
 
     static async getInstance(model, progress_callback = null) {
-        model = model ? model : 'Xenova/LaMini-Neo-125M'
+        model = model !== null ? model : 'Xenova/LaMini-Neo-125M'
 
         if (this.instance === null) {
             this.instance = pipeline(this.task, model, {
@@ -58,6 +58,7 @@ self.onmessage = async function (event) {
     if (event.data.action !== 'inference') return
     isBusy = true
     try {
+        // self.postMessage({ status: 'fail', event })
         const { prompt, generatorOptions } = event.data
 
         if (generatorOptions.should_classify) {
@@ -130,7 +131,7 @@ self.onmessage = async function (event) {
             }
         }
     } catch (error) {
-        self.postMessage({ status: 'fail', error })
+        self.postMessage({ status: 'fail', data: { from: 'worker', error } })
     }
     isBusy = false
     self.postMessage({ status: 'complete', output: '' })

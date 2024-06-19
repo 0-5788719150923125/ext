@@ -43,7 +43,7 @@ export function eventHandler(event) {
             event.data.status
         )
     ) {
-        sendToBackground('toUnclassified', { error: event })
+        sendToBackground('toUnclassified', event)
     } else if (event.data.status === 'error') {
         sendToBackground('toError', event.data)
     } else {
