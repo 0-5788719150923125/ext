@@ -18,5 +18,5 @@
       "128": "static/icon.png"
     }
   },
-  "permissions": ["activeTab", "alarms", "storage", "unlimitedStorage"]
+  "permissions": ["alarms", "storage", "unlimitedStorage"]
 }

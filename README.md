@@ -1,6 +1,6 @@
 # EXT
 
-It's not about the quality of data; it's about the quantity.
+Because it's not about the quality of data; it's about quantity.
 
 ## INSTRUCTIONS
 
@@ -12,12 +12,21 @@ All source code can be found in the `./src/` directory:
 
 - `popup.html`, `popup.css`, `popup.js` ([toolbar action](https://developer.chrome.com/docs/extensions/reference/action/)) - contains the code for the popup which is visible to the user when they click the extension's icon from the extensions bar. For development, we recommend opening the `popup.html` file in its own tab by visiting `chrome-extension://<ext_id>/popup.html` (remember to replace `<ext_id>` with the extension's ID). You will need to refresh the page while you develop to see the changes you make.
 
-## IDEAS
+## INSTALL
 
-messy data can be useful too! (noise)
+To install and run this project, use the following series of commands:
 
-crawler, search-engine, AI-thing, indexer-thing
+```sh
+# install dependencies
+npm install
 
-scraping sites, as users browse them
+# build for Firefox
+npm run build:firefox
 
-The highest $LEEP value gets to write the "about us" page
+# build for Chromium
+npm run build:chromium
+
+# unpackaged and installable build artifacts will go here:
+cd ./dist/firefox
+cd ./dist/chromium
+```
