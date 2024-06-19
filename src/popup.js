@@ -4,6 +4,12 @@
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 const topicElement = document.getElementById('topic')
+const trainLink = document.getElementById('trainLink')
+
+// Function to update the URL with a new word
+function updateTrainLink(word) {
+    trainLink.href = `https://src.eco/?focus=${word}`
+}
 
 // Generic functions used to update the UI
 function updateOutputUI(string) {
@@ -16,6 +22,7 @@ function updateInputUI(string) {
 
 function updateTopicUI(string) {
     topicElement.innerText = string
+    updateTrainLink(string.slice(0, 256))
 }
 
 // Listen for messages from background workers
@@ -46,11 +53,11 @@ inputElement.addEventListener('keydown', (event) => {
 
     const message = {
         action: 'toDatabase',
-        text: event.target.value
+        data: event.target.value
     }
 
     chrome.runtime.sendMessage(message)
-    updateOutputUI(message.text)
+    updateOutputUI(message.data)
     event.target.value = ''
 })
 

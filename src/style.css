@@ -89,6 +89,7 @@ body {
   overflow-wrap: break-word;
   white-space: pre-wrap;
   text-align: center;
+  margin-right: auto;
 }
 
 #slate {
@@ -115,6 +116,7 @@ body {
   display: inline-block;
   width: 2em;
   height: 2em;
+  flex-shrink: 0;
 }
 
 .icon-button img {

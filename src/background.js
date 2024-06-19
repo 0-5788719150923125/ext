@@ -137,27 +137,35 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     // Listen for a specific event and perform an action
     chrome.alarms.onAlarm.addListener(async (alarm) => {
         if (alarm.name !== 'doInference') return
-        // Retrieve frequency option from storage
-        chrome.storage.local.get('frequency', async (data) => {
-            let currentFrequency = 0.1
-            if (data.frequency) {
-                currentFrequency = Number(data.frequency)
-            }
 
-            const roll = Math.random()
+        let currentFrequency = 0.1
+        const frequency = await getSavedOption('frequency')
+        const model = await getSavedOption('model')
 
-            const model = await getSavedOption('model')
+        if (frequency) {
+            currentFrequency = Number(frequency)
+        }
 
-            await submitInferenceRequest(context.get(), {
-                model,
-                do_sample: true,
-                temperature: 0.45,
-                max_new_tokens: 59,
-                repetition_penalty: 1.1,
-                no_repeat_ngram_size: 7,
-                should_classify: true,
-                should_infer: roll <= currentFrequency ? true : false
-            })
+        const roll = Math.random()
+
+        console.log(
+            'model:',
+            model,
+            'frequency:',
+            currentFrequency,
+            'roll:',
+            roll
+        )
+
+        await submitInferenceRequest(context.get(), {
+            model,
+            do_sample: true,
+            temperature: 0.45,
+            max_new_tokens: 59,
+            repetition_penalty: 1.1,
+            no_repeat_ngram_size: 7,
+            should_classify: true,
+            should_infer: roll <= currentFrequency ? true : false
         })
     })
 })
