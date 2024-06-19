@@ -455,8 +455,21 @@ function handleWindowMove() {
         const deltaX = window.screenX - prevWindowX
         const deltaY = window.screenY - prevWindowY
         Object.values(heads).forEach((atom) => {
-            atom.targetX += deltaX
-            atom.targetY += deltaY
+            // Calculate color based on z value
+            const colorCycle = Math.sin(atom.z * 0.23) // Sine wave for color oscillation
+            const blueChannel = Math.floor(255 * (0.4 - 0.4 * colorCycle))
+            const redChannel = Math.floor(255 * (0.4 + 0.4 * colorCycle))
+
+            // Check if the atom is more red than blue
+            if (redChannel > blueChannel) {
+                // Move the atom in the opposite direction of the cursor
+                atom.targetX -= deltaX
+                atom.targetY -= deltaY
+            } else {
+                // Move the atom in the same direction as the cursor
+                atom.targetX += deltaX
+                atom.targetY += deltaY
+            }
         })
     }
 
