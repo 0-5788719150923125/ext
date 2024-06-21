@@ -173,35 +173,6 @@ function drawSynapseLine(atom1, atom2) {
     ctx.stroke()
 }
 
-// Add a new function to calculate curved trajectory
-function calculateCurvedTrajectory(start, end, progress, curveFactor) {
-    const dx = end.x - start.x
-    const dy = end.y - start.y
-
-    // Apply SiLU to progress for non-linear movement
-    const curvedProgress = silu(progress * 6 - 3) // Scale and shift for better curve
-
-    // Calculate midpoint
-    const midX = (start.x + end.x) / 2
-    const midY = (start.y + end.y) / 2
-
-    // Apply curve
-    const curveX = -dy * curveFactor
-    const curveY = dx * curveFactor
-
-    // Calculate position along the curve
-    const x =
-        start.x +
-        dx * curvedProgress +
-        curveX * Math.sin(Math.PI * curvedProgress)
-    const y =
-        start.y +
-        dy * curvedProgress +
-        curveY * Math.sin(Math.PI * curvedProgress)
-
-    return { x, y }
-}
-
 function moveAtomElastic(atom, repulsionX, repulsionY) {
     const dx = (atom.targetX - atom.x) * damping + repulsionX
     const dy = (atom.targetY - atom.y) * damping + repulsionY
