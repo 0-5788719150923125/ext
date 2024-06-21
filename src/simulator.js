@@ -35,7 +35,6 @@ canvas.style.height = rect.height + 'px'
 let centerX = canvas.width / 2
 let centerY = canvas.height / 2
 
-// Function to update the center coordinates and resize the canvas when the window is resized
 function resizeCanvas() {
     const rect = canvas.getBoundingClientRect()
     const dpr = window.devicePixelRatio || 1
@@ -55,7 +54,7 @@ function resizeCanvas() {
     drawAtoms()
 }
 
-function drawAtom(x, y, z, text) {
+function drawAtom(x, y, z) {
     const scaledRadius = baseRadius / (1 + z * scalingFactor)
 
     const intensity = 0.4
@@ -84,13 +83,6 @@ function drawAtom(x, y, z, text) {
     ctx.lineWidth = 2
     ctx.strokeStyle = 'black'
     ctx.stroke()
-
-    // Draw the text inside the atom
-    ctx.font = '14px sans-serif'
-    ctx.fillStyle = 'white'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    // ctx.fillText(text, x, y)
 }
 
 function drawAtoms() {
@@ -102,16 +94,15 @@ function drawAtoms() {
         drawSynapseLine(atom1, atom2)
     })
 
-    Object.entries(heads).forEach(([i, value]) => {
+    Object.entries(heads).forEach(([i, atom]) => {
         let repulsionX = 0
         let repulsionY = 0
 
-        Object.entries(heads).forEach(([j, value]) => {
+        Object.entries(heads).forEach(([j, otherAtom]) => {
             if (i !== j) {
-                const otherAtom = heads[j]
-                const distanceX = heads[i].x - otherAtom.x
-                const distanceY = heads[i].y - otherAtom.y
-                const distanceZ = heads[i].z - otherAtom.z
+                const distanceX = atom.x - otherAtom.x
+                const distanceY = atom.y - otherAtom.y
+                const distanceZ = atom.z - otherAtom.z
                 const distance = Math.sqrt(
                     distanceX * distanceX +
                         distanceY * distanceY +
@@ -124,108 +115,83 @@ function drawAtoms() {
                         buffer,
                         (baseRadius * 2 - distance) / 5
                     )
-                    const repulsionForce = force * damping
+                    const repulsionForce = force * repulsionStrength
                     repulsionX += (repulsionForce * distanceX) / distance
                     repulsionY += (repulsionForce * distanceY) / distance
                 }
             }
         })
 
-        const moveResult = moveAtomLinear(
-            heads[i].x,
-            heads[i].y,
-            heads[i].targetX,
-            heads[i].targetY,
-            damping
-        )
-        heads[i].x = moveResult.x + repulsionX
-        heads[i].y = moveResult.y + repulsionY
+        const moveResult = moveAtomElastic(atom, repulsionX, repulsionY)
+        atom.x = moveResult.x
+        atom.y = moveResult.y
 
-        heads[i].x = Math.max(
+        atom.x = Math.max(
             baseRadius,
-            Math.min(heads[i].x, canvas.width - baseRadius)
+            Math.min(atom.x, canvas.width - baseRadius)
         )
-        heads[i].y = Math.max(
+        atom.y = Math.max(
             baseRadius,
-            Math.min(heads[i].y, canvas.height - baseRadius)
+            Math.min(atom.y, canvas.height - baseRadius)
         )
 
-        drawAtom(heads[i].x, heads[i].y, heads[i].z, heads[i].text)
+        drawAtom(atom.x, atom.y, atom.z)
 
         if (
-            Math.abs(heads[i].x - heads[i].targetX) <= tolerance &&
-            Math.abs(heads[i].y - heads[i].targetY) <= tolerance
+            Math.abs(atom.x - atom.targetX) <= tolerance &&
+            Math.abs(atom.y - atom.targetY) <= tolerance
         ) {
-            heads[i].targetX =
+            atom.targetX =
                 Math.random() * (canvas.width - baseRadius * 2) + baseRadius
-            heads[i].targetY =
+            atom.targetY =
                 Math.random() * (canvas.height - baseRadius * 2) + baseRadius
         }
     })
 }
 
-const delay = (ms) => new Promise((res) => setTimeout(res, ms))
-
 function drawSynapseLine(atom1, atom2) {
-    // Extract coordinates directly from atom objects
-    const x1 = atom1.x
-    const y1 = atom1.y
-    const x2 = atom2.x
-    const y2 = atom2.y
-
     ctx.beginPath()
-    ctx.moveTo(x1, y1)
-    ctx.lineTo(x2, y2)
+    ctx.moveTo(atom1.x, atom1.y)
+    ctx.lineTo(atom2.x, atom2.y)
     ctx.strokeStyle = 'black'
     ctx.lineWidth = 1
     ctx.stroke()
 }
 
-function moveAtomLinear(old_x, old_y, new_x, new_y, damping) {
-    const dx = (new_x - old_x) * damping
-    const dy = (new_y - old_y) * damping
+function moveAtomElastic(atom, repulsionX, repulsionY) {
+    const dx = (atom.targetX - atom.x) * damping + repulsionX
+    const dy = (atom.targetY - atom.y) * damping + repulsionY
+
+    // Incorporate Z-axis into motion strength
+    const zFactor = 1 + Math.abs(atom.z) * 0.5 // Adjust 0.5 to control Z influence
 
     const distance = Math.sqrt(dx * dx + dy * dy)
-    const threshold = 5 // Adjust this value to control when the elastic effect starts
+    const threshold = 5 * zFactor // Adjust this value to control when the elastic effect starts
 
     if (distance < threshold) {
         const elasticFactor = (threshold - distance) / threshold
-        const elasticDamping = 0.1 // Adjust this value to control the strength of the elastic effect
+        const elasticDamping = 0.1 * zFactor // Adjust this value to control the strength of the elastic effect
         const elasticDx = dx * elasticFactor * elasticDamping
         const elasticDy = dy * elasticFactor * elasticDamping
 
-        const updated_x = old_x + dx + elasticDx
-        const updated_y = old_y + dy + elasticDy
+        atom.vx = (atom.vx || 0) * 0.9 + elasticDx // Apply momentum
+        atom.vy = (atom.vy || 0) * 0.9 + elasticDy
 
-        // Check if the atom hits a wall
-        if (
-            updated_x <= baseRadius ||
-            updated_x >= canvas.width - baseRadius ||
-            updated_y <= baseRadius ||
-            updated_y >= canvas.height - baseRadius
-        ) {
-            // If the atom hits a wall, reduce its momentum smoothly
-            const momentumDamping = 0.9 // Adjust this value to control the momentum decay
-            const momentumDx = dx * momentumDamping
-            const momentumDy = dy * momentumDamping
-
-            return {
-                x: old_x + momentumDx,
-                y: old_y + momentumDy
-            }
+        return {
+            x: atom.x + atom.vx,
+            y: atom.y + atom.vy
         }
-
-        return { x: updated_x, y: updated_y }
     } else {
-        const updated_x = old_x + dx
-        const updated_y = old_y + dy
-
-        return { x: updated_x, y: updated_y }
+        atom.vx = dx
+        atom.vy = dy
+        return {
+            x: atom.x + atom.vx,
+            y: atom.y + atom.vy
+        }
     }
 }
 
 function getRandomInt(min, max) {
-    // Ensure min is smaller than max
     min = Math.ceil(min)
     max = Math.floor(max)
     return Math.floor(Math.random() * (max - min + 1)) + min
@@ -233,98 +199,10 @@ function getRandomInt(min, max) {
 
 // Store a list of currently active synapse lines
 let activeSynapseLines = []
-let synapseLines = []
 let frameCount = 0
 
-let lastFrameTime = 0
-
 function animateAtoms(currentTime) {
-    lastFrameTime = currentTime
-
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    // Draw synapse lines first (behind atoms)
-    activeSynapseLines.forEach(({ atom1, atom2 }) => {
-        drawSynapseLine(atom1, atom2)
-    })
-
-    Object.entries(heads).forEach(([i, value]) => {
-        let repulsionX = 0
-        let repulsionY = 0
-
-        Object.entries(heads).forEach(([j, value]) => {
-            if (i !== j) {
-                const otherAtom = heads[j]
-                const distanceX = heads[i].x - otherAtom.x
-                const distanceY = heads[i].y - otherAtom.y
-                const distanceZ = heads[i].z - otherAtom.z
-                const distance = Math.sqrt(
-                    distanceX * distanceX +
-                        distanceY * distanceY +
-                        distanceZ * distanceZ
-                )
-
-                const buffer = bias
-                if (distance < baseRadius * 2 + buffer) {
-                    const force = Math.max(
-                        buffer,
-                        (baseRadius * 2 - distance) / 5
-                    )
-                    const repulsionForce = force * damping
-                    repulsionX += (repulsionForce * distanceX) / distance
-                    repulsionY += (repulsionForce * distanceY) / distance
-                }
-            }
-        })
-
-        const moveResult = moveAtomLinear(
-            heads[i].x,
-            heads[i].y,
-            heads[i].targetX,
-            heads[i].targetY,
-            damping
-        )
-        heads[i].x = moveResult.x + repulsionX
-        heads[i].y = moveResult.y + repulsionY
-
-        heads[i].x = Math.max(
-            baseRadius,
-            Math.min(heads[i].x, canvas.width - baseRadius)
-        )
-        heads[i].y = Math.max(
-            baseRadius,
-            Math.min(heads[i].y, canvas.height - baseRadius)
-        )
-
-        drawAtom(heads[i].x, heads[i].y, heads[i].z, heads[i].text)
-
-        if (
-            Math.abs(heads[i].x - heads[i].targetX) <= tolerance &&
-            Math.abs(heads[i].y - heads[i].targetY) <= tolerance
-        ) {
-            heads[i].targetX =
-                Math.random() * (canvas.width - baseRadius * 2) + baseRadius
-            heads[i].targetY =
-                Math.random() * (canvas.height - baseRadius * 2) + baseRadius
-        }
-    })
-
-    // Draw active synapse lines
-    activeSynapseLines.forEach(({ atom1, atom2 }) => {
-        // Determine which atom should be drawn "closer"
-        const closerAtom = atom1.z > atom2.z ? atom1 : atom2
-        const fartherAtom = atom1 === closerAtom ? atom2 : atom1
-
-        // Draw the farther atom first
-        drawAtom(fartherAtom.x, fartherAtom.y, fartherAtom.z, fartherAtom.text)
-
-        // Draw the connecting line
-        drawSynapseLine(atom1, atom2)
-
-        // Draw the closer atom to appear in front of the line
-        drawAtom(closerAtom.x, closerAtom.y, closerAtom.z, closerAtom.text)
-    })
+    drawAtoms()
 
     frameCount++
 
@@ -347,7 +225,9 @@ function animateAtoms(currentTime) {
             )
 
             const pair = [atom1Index, atom2Index].sort() // Ensure order doesn't matter
-            if (!synapsePairs.includes(pair)) {
+            if (
+                !synapsePairs.some((p) => p[0] === pair[0] && p[1] === pair[1])
+            ) {
                 synapsePairs.push(pair)
             }
         }
@@ -358,7 +238,6 @@ function animateAtoms(currentTime) {
             const atom2 = heads[atom2Index]
 
             activeSynapseLines.push({ atom1, atom2 })
-            drawSynapseLine(atom1, atom2) // Pass atom objects
         })
     }
 
@@ -366,12 +245,10 @@ function animateAtoms(currentTime) {
     requestAnimationFrame(animateAtoms)
 }
 
-// Function to calculate the SILU (Sigmoid-weighted Linear Unit) function
 function silu(x) {
     return x * (1 / (1 + Math.exp(-x)))
 }
 
-// Animation loop
 function animateFieldStrength() {
     const currentTime = new Date().getTime()
     const oscillationValue = Math.sin(currentTime * oscillationSpeed)
@@ -387,9 +264,6 @@ function animateFieldStrength() {
     requestAnimationFrame(animateFieldStrength)
 }
 
-// Start the animation loop
-animateFieldStrength()
-
 async function cycleAtoms() {
     const atoms = {}
 
@@ -404,7 +278,6 @@ async function cycleAtoms() {
                 x: startX,
                 y: startY,
                 z: startZ,
-                text: `${i}`,
                 targetX: startX,
                 targetY: startY
             }
@@ -419,7 +292,6 @@ async function cycleAtoms() {
                 x: heads[i].x,
                 y: heads[i].y,
                 z: targetZ,
-                text: `${i}.`,
                 targetX,
                 targetY
             }
@@ -429,16 +301,14 @@ async function cycleAtoms() {
     tails = { ...heads }
     heads = atoms
 
-    await delay(6000)
+    await new Promise((resolve) => setTimeout(resolve, 6000))
     cycleAtoms()
 }
 
-// Add an event listener to resize the canvas when the window is resized
 window.addEventListener('resize', resizeCanvas)
 
 let prevWindowX = window.screenX
 let prevWindowY = window.screenY
-
 let isInitialized = false
 
 function handleWindowMove() {
@@ -489,13 +359,13 @@ function handleWindowMove() {
 
 // Add event listeners
 window.addEventListener('resize', resizeCanvas)
-window.addEventListener('load', resizeCanvas)
-
-// Start tracking window movement
-handleWindowMove()
+window.addEventListener('load', () => {
+    resizeCanvas()
+    animateAtoms()
+    animateFieldStrength()
+    cycleAtoms()
+    handleWindowMove()
+})
 
 // Initial canvas resize
 resizeCanvas()
-
-animateAtoms()
-cycleAtoms()
