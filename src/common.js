@@ -15,13 +15,30 @@ export function randomBetween(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
+function sendMessage(data) {
+    chrome.runtime.sendMessage(data, (response) => {
+        // This will always fail when extension popup is closed
+        if (chrome.runtime.lastError) {
+            // Handle the case when the receiving end does not exist
+            if (typeof callback === 'function') {
+                callback({ error: chrome.runtime.lastError.message })
+            }
+        } else {
+            // Handle the successful response
+            if (typeof callback === 'function') {
+                callback(response)
+            }
+        }
+    })
+}
+
 // Function to send data to the popup
 export function sendToForeground(action, data) {
-    chrome.runtime.sendMessage({ action, data })
+    sendMessage({ action, data })
 }
 
 export function sendToBackground(action, data) {
-    chrome.runtime.sendMessage({ action, data })
+    sendMessage({ action, data })
 }
 
 export async function getSavedOption(option) {

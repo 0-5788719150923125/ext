@@ -113,7 +113,7 @@ export async function doInference(data) {
 
         let shouldReturn = false
         while (true) {
-            await delay(randomBetween(100, 300))
+            await delay(randomBetween(50, 200))
             let output = ''
             for (const i in outputChars) {
                 shouldReturn = true

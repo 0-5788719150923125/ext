@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "The Link",
   "description": "Feeding Machines",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "permissions": ["alarms", "offscreen", "storage", "tabs", "unlimitedStorage"],
   "background": {
     "service_worker": "background.js",
