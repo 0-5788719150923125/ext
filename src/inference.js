@@ -76,7 +76,7 @@ export async function doInference(data) {
                 score: output.score
             })
         }
-        console.log(answer)
+
         const roll = Math.random()
         if (roll >= generatorOptions.frequency) return
 
@@ -130,7 +130,6 @@ export async function doInference(data) {
             }
             if (shouldReturn) {
                 sendMessage({ status: 'complete', output })
-                console.log(output)
                 break
             }
         }

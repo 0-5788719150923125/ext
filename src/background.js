@@ -41,7 +41,6 @@ let gun = new Gun()
 gun.subscribe('trade').on(async (node) => {
     if (['null', 'undefined'].includes(typeof node)) return
     const message = JSON.parse(node).message
-    console.log('from gun:', message)
     context.add(message)
     sendToForeground('toOutputField', message)
     sendToBackground('toLogger', `from gun: ${message}`)
@@ -129,7 +128,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             console.warn(message.data)
             break
         case 'toLogger':
-            console.warn(message.data)
+            console.log(message.data)
             break
         case 'toError':
             console.error(message.data)
