@@ -12,6 +12,11 @@ const damping = 0.01
 const tolerance = 1
 const repulsionStrength = 0.1
 
+// Mass accumulation parameters
+const massAccumulationRate = 0.001
+const maxMass = 5
+const minMass = 0.5
+
 // Monte Carlo simulation
 let heads = {}
 let tails = {}
@@ -54,16 +59,18 @@ function resizeCanvas() {
     drawAtoms()
 }
 
-function drawAtom(x, y, z) {
-    const scaledRadius = baseRadius / (1 + z * scalingFactor)
+function drawAtom(x, y, z, mass) {
+    const scaledRadius =
+        (baseRadius * Math.sqrt(mass)) / (1 + z * scalingFactor)
 
     const intensity = 0.4
     const cycleSpeed = 0.23
 
-    // Calculate color based on z value
+    // Calculate color based on z value and mass
     const colorCycle = Math.sin(z * cycleSpeed)
     const blueChannel = Math.floor(255 * (intensity - intensity * colorCycle))
     const redChannel = Math.floor(255 * (intensity + intensity * colorCycle))
+    const greenChannel = Math.floor(255 * (mass / maxMass)) // Add green based on mass
 
     // Draw the line to the center of the canvas (behind the atom)
     ctx.beginPath()
@@ -76,7 +83,7 @@ function drawAtom(x, y, z) {
     // Draw the atom shape (filled circle) with scaled radius and calculated color
     ctx.beginPath()
     ctx.arc(x, y, scaledRadius, 0, Math.PI * 2)
-    ctx.fillStyle = `rgb(${redChannel}, 0, ${blueChannel})`
+    ctx.fillStyle = `rgb(${redChannel}, ${greenChannel}, ${blueChannel})`
     ctx.fill()
 
     // Draw the outline of the atom
@@ -127,24 +134,32 @@ function drawAtoms() {
         atom.y = moveResult.y
 
         atom.x = Math.max(
-            baseRadius,
-            Math.min(atom.x, canvas.width - baseRadius)
+            baseRadius * Math.sqrt(atom.mass),
+            Math.min(atom.x, canvas.width - baseRadius * Math.sqrt(atom.mass))
         )
         atom.y = Math.max(
-            baseRadius,
-            Math.min(atom.y, canvas.height - baseRadius)
+            baseRadius * Math.sqrt(atom.mass),
+            Math.min(atom.y, canvas.height - baseRadius * Math.sqrt(atom.mass))
         )
 
-        drawAtom(atom.x, atom.y, atom.z)
+        // Update atom mass
+        atom.mass += (Math.random() - 0.5) * 2 * massAccumulationRate
+        atom.mass = Math.max(minMass, Math.min(atom.mass, maxMass))
+
+        drawAtom(atom.x, atom.y, atom.z, atom.mass)
 
         if (
             Math.abs(atom.x - atom.targetX) <= tolerance &&
             Math.abs(atom.y - atom.targetY) <= tolerance
         ) {
             atom.targetX =
-                Math.random() * (canvas.width - baseRadius * 2) + baseRadius
+                Math.random() *
+                    (canvas.width - baseRadius * 2 * Math.sqrt(atom.mass)) +
+                baseRadius * Math.sqrt(atom.mass)
             atom.targetY =
-                Math.random() * (canvas.height - baseRadius * 2) + baseRadius
+                Math.random() *
+                    (canvas.height - baseRadius * 2 * Math.sqrt(atom.mass)) +
+                baseRadius * Math.sqrt(atom.mass)
         }
     })
 }
@@ -264,7 +279,7 @@ function animateFieldStrength() {
     requestAnimationFrame(animateFieldStrength)
 }
 
-async function cycleAtoms() {
+function cycleAtoms() {
     const atoms = {}
 
     if (Object.keys(heads).length === 0) {
@@ -279,7 +294,8 @@ async function cycleAtoms() {
                 y: startY,
                 z: startZ,
                 targetX: startX,
-                targetY: startY
+                targetY: startY,
+                mass: 1 // Initialize with base mass
             }
         }
     } else {
@@ -293,7 +309,8 @@ async function cycleAtoms() {
                 y: heads[i].y,
                 z: targetZ,
                 targetX,
-                targetY
+                targetY,
+                mass: heads[i].mass // Carry over the mass
             }
         })
     }
@@ -301,8 +318,7 @@ async function cycleAtoms() {
     tails = { ...heads }
     heads = atoms
 
-    await new Promise((resolve) => setTimeout(resolve, 6000))
-    cycleAtoms()
+    setTimeout(cycleAtoms, 6000)
 }
 
 let prevWindowX = window.screenX
