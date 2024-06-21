@@ -130,8 +130,10 @@ export async function doInference(data) {
                 }
             }
             if (shouldReturn) {
-                sendMessage({ status: 'complete', output })
-                db.emit('toDatabase', { action: 'toDatabase', data: output })
+                if (output.length > 2) {
+                    sendMessage({ status: 'complete', output })
+                    db.emit('toRouter', { action: 'toDatabase', data: output })
+                }
                 break
             }
         }

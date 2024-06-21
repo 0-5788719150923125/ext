@@ -3,7 +3,6 @@ import Gun from './book.js'
 import db from './db.js'
 import { doInference } from './inference.js'
 import {
-    LogHandler,
     eventHandler,
     getSavedOption,
     sendToBackground,
@@ -45,7 +44,7 @@ gun.subscribe('trade').on(async (node) => {
     if (['null', 'undefined'].includes(typeof node)) return
     const message = JSON.parse(node).message
     context.add(message)
-    sendToBackground('toLogger', `from gun: ${message}`)
+    // sendToBackground('toLogger', `from gun: ${message}`)
     sendToForeground('toOutputField', message)
 })
 
@@ -122,33 +121,42 @@ if (!chrome.offscreen) {
 
     inferenceWorker.onmessage = async (event) => {
         eventHandler(event)
-        switch (event.action) {
-            case 'toDatabase':
-                gun.send(message.data)
-                break
+        if (event.data.status === 'complete') {
+            // console.log(event)
+            db.emit('toRouter', {
+                action: 'toDatabase',
+                data: event.data.output
+            })
         }
     }
 }
 
-const logger = new LogHandler(gun)
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    logger.log('from listener: ', message)
-    switch (message.action) {
-        case 'toDatabase':
-            gun.send(message.data)
-            break
-    }
+    db.emit('toRouter', message.data)
 })
 
-db.on('toDatabase', (event) => {
-    console.log('db event:', event.detail)
-    switch (event.detail.action) {
+db.on('toRouter', (event) => {
+    router(event.detail)
+})
+
+function router(detail) {
+    switch (detail?.action) {
         case 'toDatabase':
-            gun.send(event.detail.data)
+            if (detail.data.length < 3) break
+            gun.send(detail.data)
+            console.log(detail.data)
+            break
+        case 'toLogger':
+            console.log(detail.data)
+            break
+        case 'toError':
+            console.error(detail.data)
+            break
+        case 'toUnclassified':
+            console.warn(detail.data)
             break
     }
-})
+}
 
 // Set up a recurring prediction
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
@@ -174,7 +182,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         await submitInferenceRequest(context.get(), {
             model,
             do_sample: true,
-            temperature: 0.7,
+            temperature: 0.45,
             max_new_tokens: 60,
             repetition_penalty: 1.1,
             no_repeat_ngram_size: 7,

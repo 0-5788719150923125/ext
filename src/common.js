@@ -15,31 +15,6 @@ export function randomBetween(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-export class LogHandler {
-    constructor(gun) {
-        this.gun = gun || null
-    }
-
-    log(message) {
-        switch (message.action) {
-            case 'toDatabase':
-                if (this.gun) gun.send(message.data)
-                break
-            case 'toLogger':
-                console.log(message.data)
-                break
-            case 'toError':
-                console.error(message.data)
-                break
-            case 'toUnclassified':
-                console.warn(message.data)
-                break
-        }
-    }
-}
-
-const logger = new LogHandler()
-
 function sendMessage(data) {
     chrome.runtime.sendMessage(data, (response) => {
         // This will always fail when extension popup is closed
@@ -54,7 +29,6 @@ function sendMessage(data) {
                 callback(response)
             }
         }
-        logger.log(data)
     })
 }
 

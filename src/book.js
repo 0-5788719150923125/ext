@@ -17,7 +17,7 @@ class Controller {
             radisk: false,
             axe: false,
             // We have to pass the necessary APIs to GUN, else GUN will
-            // register itself to the browser's foreground context - rather
+            // register itself to the browser's foreground - rather
             // than the background (service worker) context.
             WebSocket: self.WebSocket,
             crypto: self.crypto,
