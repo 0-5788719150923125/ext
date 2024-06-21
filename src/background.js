@@ -184,10 +184,14 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         await submitInferenceRequest(context.get(), {
             model,
             do_sample: true,
-            temperature: 0.45,
+            temperature: 0.7,
             max_new_tokens: 60,
             repetition_penalty: 1.1,
             no_repeat_ngram_size: 7,
+            top_k: 4,
+            penalty_alpha: 0.6,
+            eta_cutoff: 0.0003,
+            renormalize_logits: true,
             frequency: currentFrequency
         })
     })
