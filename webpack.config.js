@@ -1,6 +1,7 @@
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import CopyPlugin from 'copy-webpack-plugin'
 
@@ -22,7 +23,16 @@ const config = {
         path: path.resolve(__dirname, `dist/${browser}`),
         filename: '[name].js'
     },
+    optimization: {
+        splitChunks: {
+            chunks: 'all',
+            maxSize: 1000000 // 1MB in bytes
+        }
+    },
     plugins: [
+        new webpack.optimize.LimitChunkCountPlugin({
+            maxChunks: 50
+        }),
         new HtmlWebpackPlugin({
             template: './src/index.html',
             filename: 'index.html'

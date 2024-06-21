@@ -1,5 +1,9 @@
 #!/bin/sh
 
+rm -rf dist
+
+(cd .. && zip -r ext/dist/source.${VERSION}.zip ./ext -x "*.git*" "*.git/*" "node_modules/*")
+
 npm run build:chromium 
 npm run build:firefox
 
