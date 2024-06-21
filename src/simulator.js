@@ -305,8 +305,6 @@ async function cycleAtoms() {
     cycleAtoms()
 }
 
-window.addEventListener('resize', resizeCanvas)
-
 let prevWindowX = window.screenX
 let prevWindowY = window.screenY
 let isInitialized = false
@@ -369,3 +367,99 @@ window.addEventListener('load', () => {
 
 // Initial canvas resize
 resizeCanvas()
+
+function sigmoid(x) {
+    return 1 / (1 + Math.exp(-10 * (x - 0.5)))
+}
+
+function* leepScoreGenerator() {
+    const baseRadius = 23
+    const maxDistance = Math.sqrt(
+        Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2)
+    )
+
+    while (true) {
+        const atomCount = Object.keys(heads).length
+        if (atomCount === 0) {
+            yield 0 // No atoms, score is 0
+            continue
+        }
+
+        let stabilityScore = 0
+        let energyScore = 0
+        let distributionScore = 0
+        let synergyScore = 0
+
+        // Calculate center of mass
+        let centerX = 0,
+            centerY = 0
+        Object.values(heads).forEach((atom) => {
+            centerX += atom.x
+            centerY += atom.y
+        })
+        centerX /= atomCount
+        centerY /= atomCount
+
+        Object.values(heads).forEach((atom, i) => {
+            // Stability: how close atoms are to their target positions
+            const distanceToTarget = Math.sqrt(
+                Math.pow(atom.x - (atom.targetX || atom.x), 2) +
+                    Math.pow(atom.y - (atom.targetY || atom.y), 2)
+            )
+            stabilityScore += 1 - distanceToTarget / maxDistance
+
+            // Energy: consider z-position and velocity
+            const zEnergy = Math.abs(atom.z || 0)
+            const velocity = Math.sqrt(
+                Math.pow(atom.vx || 0, 2) + Math.pow(atom.vy || 0, 2)
+            )
+            energyScore += (zEnergy + velocity) / 2
+
+            // Distribution: reward even spacing between atoms
+            let avgDistance = 0
+            Object.values(heads).forEach((otherAtom, j) => {
+                if (i !== j) {
+                    const distance = Math.sqrt(
+                        Math.pow(atom.x - otherAtom.x, 2) +
+                            Math.pow(atom.y - otherAtom.y, 2)
+                    )
+                    avgDistance += distance
+                }
+            })
+            avgDistance /= atomCount - 1
+            distributionScore +=
+                1 - Math.abs(avgDistance - 2 * baseRadius) / (2 * baseRadius)
+
+            // Synergy: reward atoms for forming patterns or alignments
+            const angleToCenter = Math.atan2(atom.y - centerY, atom.x - centerX)
+            synergyScore += Math.abs(Math.sin(angleToCenter * atomCount))
+        })
+
+        // Normalize scores
+        stabilityScore /= atomCount
+        energyScore = Math.min(energyScore / atomCount, 1)
+        distributionScore /= atomCount
+        synergyScore /= atomCount
+
+        // Calculate coverage (how much of the canvas is utilized)
+        const canvasArea = canvas.width * canvas.height
+        const coverage = Math.min(
+            1,
+            (atomCount * Math.pow(baseRadius, 2) * Math.PI) / canvasArea
+        )
+
+        // Combine all factors into a final score
+        const rawScore =
+            stabilityScore * 0.3 +
+            energyScore * 0.2 +
+            distributionScore * 0.2 +
+            synergyScore * 0.2 +
+            coverage * 0.1
+
+        // Apply sigmoid function and yield the result
+        yield sigmoid(rawScore)
+    }
+}
+
+// Export the generator function
+export default leepScoreGenerator

@@ -102,13 +102,22 @@ body {
   filter: blur(0px);
 }
 
-.button-container {
+/* .button-container {
   position: fixed;
   bottom: 0;
   right: 0;
   display: flex;
   gap: 10px;
   margin: 10px;
+  z-index: 1001;
+} */
+
+.button-container {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
   z-index: 1001;
 }
 
@@ -171,4 +180,21 @@ body {
 
 .selection-box span {
   white-space: nowrap;
+}
+
+.sleep-token-container {
+  position: fixed;
+  bottom: 50px; /* Adjust this value to position it above the buttons */
+  right: 10px;
+  text-align: right;
+  z-index: 1001;
+}
+
+#sleepToken {
+  font-size: 0.8em;
+  color: #666;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 2px 5px;
+  border-radius: 3px;
+  text-shadow: 0 0 5px white, 0 0 10px white;
 }

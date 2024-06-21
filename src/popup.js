@@ -1,7 +1,7 @@
 // popup.js - handles interaction with the extension's popup, sends requests to the
 // service worker (background.js), and updates the popup's UI (index.html) on completion.
 
-import './simulator.js'
+import SleepTokenizer from './simulator.js'
 
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
@@ -161,3 +161,22 @@ function displayOptionsToggle(elementId, options, currentValue) {
         chrome.storage.local.set({ [elementId]: event.target.value })
     })
 }
+
+const tokenGenerator = SleepTokenizer()
+
+function getLatestSleepTokens() {
+    return tokenGenerator.next().value
+}
+
+function updateSleepScore() {
+    const leepScore = getLatestSleepTokens()
+    document.getElementById('sleepToken').textContent =
+        '$LEEP: ' + leepScore.toFixed(4)
+}
+
+function animationLoop() {
+    updateSleepScore()
+    requestAnimationFrame(animationLoop)
+}
+
+animationLoop()
