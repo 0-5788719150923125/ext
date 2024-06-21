@@ -109,7 +109,7 @@ if (!chrome.offscreen) {
     })
 
     inferenceWorker.onmessage = async (event) => {
-        eventHandler(event, gun)
+        eventHandler(event)
     }
 }
 

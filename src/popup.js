@@ -8,8 +8,6 @@ const outputElement = document.getElementById('output')
 const topicElement = document.getElementById('topic')
 const trainLink = document.getElementById('trainLink')
 
-console.log(window.location.href)
-
 // Function to update the URL with a new word
 function updateTrainLink(word) {
     trainLink.href = `https://src.eco/?focus=${word}`

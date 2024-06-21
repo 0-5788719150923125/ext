@@ -51,10 +51,18 @@ const classify = async (context, options) => {
     return await model(question, context, options)
 }
 
+function sendMessage(message) {
+    if (typeof self !== 'undefined' && self.postMessage) {
+        // Web Worker context
+        self.postMessage(message)
+    } else {
+        // Service Worker context
+        eventHandler({ data: message })
+    }
+}
+
 export async function doInference(data) {
     try {
-        // if (data.action !== 'inference') return
-
         const { prompt, generatorOptions } = data
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
@@ -62,15 +70,13 @@ export async function doInference(data) {
         let answer = cleanPrediction(output.answer)
 
         if (answer.length > 3) {
-            eventHandler({
-                data: {
-                    action: 'classification',
-                    answer,
-                    score: output.score
-                }
+            sendMessage({
+                action: 'classification',
+                answer,
+                score: output.score
             })
         }
-
+        console.log(answer)
         const roll = Math.random()
         if (roll >= generatorOptions.frequency) return
 
@@ -113,11 +119,9 @@ export async function doInference(data) {
                 shouldReturn = true
                 output += outputChars[i].char
                 if (!outputChars[i].delivered) {
-                    eventHandler({
-                        data: {
-                            status: 'partial',
-                            input: output
-                        }
+                    sendMessage({
+                        status: 'partial',
+                        input: output
                     })
                     outputChars[i].delivered = true
                     shouldReturn = false
@@ -125,14 +129,15 @@ export async function doInference(data) {
                 }
             }
             if (shouldReturn) {
-                eventHandler({ data: { status: 'complete', output } })
+                sendMessage({ status: 'complete', output })
+                console.log(output)
                 break
             }
         }
     } catch (error) {
-        eventHandler({ data: { status: 'error', error } })
+        sendMessage({ status: 'error', error })
     }
-    eventHandler({ data: { status: 'complete', output: '' } })
+    sendMessage({ status: 'complete', output: '' })
 }
 
 function cleanPrediction(output, prompt = '') {
