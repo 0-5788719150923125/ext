@@ -37,23 +37,22 @@ let centerY = canvas.height / 2
 
 // Function to update the center coordinates and resize the canvas when the window is resized
 function resizeCanvas() {
-    // Adjust for high DPI displays
+    const rect = canvas.getBoundingClientRect()
     const dpr = window.devicePixelRatio || 1
-    const rect = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    }
     canvas.width = rect.width * dpr
     canvas.height = rect.height * dpr
     ctx.scale(dpr, dpr)
 
     // Ensure the canvas is styled to fit the screen
-    canvas.style.width = rect.width + 'px'
-    canvas.style.height = rect.height + 'px'
+    canvas.style.width = '100%'
+    canvas.style.height = '100%'
 
     // Update the center coordinates
-    centerX = canvas.width / 2
-    centerY = canvas.height / 2
+    centerX = canvas.width / (2 * dpr)
+    centerY = canvas.height / (2 * dpr)
+
+    // Redraw atoms after resizing
+    drawAtoms()
 }
 
 function drawAtom(x, y, z, text) {
@@ -63,7 +62,7 @@ function drawAtom(x, y, z, text) {
     const cycleSpeed = 0.23
 
     // Calculate color based on z value
-    const colorCycle = Math.sin(z * cycleSpeed) // Sine wave for color oscillation
+    const colorCycle = Math.sin(z * cycleSpeed)
     const blueChannel = Math.floor(255 * (intensity - intensity * colorCycle))
     const redChannel = Math.floor(255 * (intensity + intensity * colorCycle))
 
@@ -71,7 +70,8 @@ function drawAtom(x, y, z, text) {
     ctx.beginPath()
     ctx.moveTo(x, y)
     ctx.lineTo(centerX, centerY)
-    ctx.strokeStyle = 'black'
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'
+    ctx.lineWidth = 1
     ctx.stroke()
 
     // Draw the atom shape (filled circle) with scaled radius and calculated color
@@ -90,7 +90,7 @@ function drawAtom(x, y, z, text) {
     ctx.fillStyle = 'white'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    // ctx.fillText(text, x, y + scaledRadius / 2)
+    // ctx.fillText(text, x, y)
 }
 
 function drawAtoms() {
@@ -443,12 +443,10 @@ let isInitialized = false
 
 function handleWindowMove() {
     if (!isInitialized) {
-        // Initialize atom positions based on the initial window position relative to the current monitor
-        const monitorLeft = screen.availLeft || 0
-        const monitorTop = screen.availTop || 0
+        // Initialize atom positions based on the initial window position
         Object.values(heads).forEach((atom) => {
-            atom.targetX += window.screenX - monitorLeft
-            atom.targetY += window.screenY - monitorTop
+            atom.targetX = Math.random() * canvas.width
+            atom.targetY = Math.random() * canvas.height
         })
         isInitialized = true
     } else {
@@ -456,20 +454,30 @@ function handleWindowMove() {
         const deltaY = window.screenY - prevWindowY
         Object.values(heads).forEach((atom) => {
             // Calculate color based on z value
-            const colorCycle = Math.sin(atom.z * 0.23) // Sine wave for color oscillation
+            const colorCycle = Math.sin(atom.z * 0.23)
             const blueChannel = Math.floor(255 * (0.4 - 0.4 * colorCycle))
             const redChannel = Math.floor(255 * (0.4 + 0.4 * colorCycle))
 
             // Check if the atom is more red than blue
             if (redChannel > blueChannel) {
                 // Move the atom in the opposite direction of the cursor
-                atom.targetX -= deltaX
-                atom.targetY -= deltaY
+                atom.targetX -= deltaX / window.devicePixelRatio
+                atom.targetY -= deltaY / window.devicePixelRatio
             } else {
                 // Move the atom in the same direction as the cursor
-                atom.targetX += deltaX
-                atom.targetY += deltaY
+                atom.targetX += deltaX / window.devicePixelRatio
+                atom.targetY += deltaY / window.devicePixelRatio
             }
+
+            // Ensure atoms stay within the canvas boundaries
+            atom.targetX = Math.max(
+                baseRadius,
+                Math.min(atom.targetX, canvas.width - baseRadius)
+            )
+            atom.targetY = Math.max(
+                baseRadius,
+                Math.min(atom.targetY, canvas.height - baseRadius)
+            )
         })
     }
 
@@ -478,6 +486,10 @@ function handleWindowMove() {
 
     requestAnimationFrame(handleWindowMove)
 }
+
+// Add event listeners
+window.addEventListener('resize', resizeCanvas)
+window.addEventListener('load', resizeCanvas)
 
 // Start tracking window movement
 handleWindowMove()
