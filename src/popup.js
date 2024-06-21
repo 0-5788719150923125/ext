@@ -175,8 +175,11 @@ function updateSleepScore() {
 }
 
 function animationLoop() {
-    updateSleepScore()
-    requestAnimationFrame(animationLoop)
+    setInterval(() => {
+        // Run the simulation and send the updated state to the popup
+        updateSleepScore()
+        requestAnimationFrame(animationLoop)
+    }, 100) // Adjust the interval as needed
 }
 
 animationLoop()
