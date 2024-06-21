@@ -86,82 +86,22 @@ persistButton.addEventListener('click', () => {
 
 // Retrieve the frequency option from storage
 chrome.storage.local.get('frequency', (data) => {
-    let defaultFrequency = '0.1'
-    if (data.frequency) {
-        defaultFrequency = data.frequency
-    }
-    chrome.storage.local.set({ frequency: defaultFrequency })
-    displayFrequencyOptions(defaultFrequency)
-})
-
-function displayFrequencyOptions(currentFrequency) {
-    // Get the selection button element
-    const frequencyToggle = document.getElementById('frequency')
-
-    // Create the selection box element
-    const selectionBox = document.createElement('div')
-    selectionBox.id = 'selection-box frequency'
-    selectionBox.className = 'selection-box frequency'
-
-    // Create the radio button options
     const options = [
         { value: '1.0', label: '100%' },
         { value: '0.5', label: '50%' },
         { value: '0.1', label: '10%' }
     ]
 
-    options.forEach((option) => {
-        const label = document.createElement('label')
-        const radio = document.createElement('input')
-        radio.type = 'radio'
-        radio.name = 'frequency'
-        radio.value = option.value
-
-        if (currentFrequency === option.value) {
-            radio.checked = true
-        }
-
-        label.appendChild(radio)
-        label.appendChild(document.createTextNode(` ${option.label}`))
-        selectionBox.appendChild(label)
-    })
-
-    // Append the selection box to the selection button
-    frequencyToggle.appendChild(selectionBox)
-
-    // Toggle the selection box visibility when the selection button is clicked
-    frequencyToggle.addEventListener('click', () => {
-        selectionBox.style.display =
-            selectionBox.style.display === 'block' ? 'none' : 'block'
-    })
-
-    // Handle the selection change event
-    selectionBox.addEventListener('change', (event) => {
-        const frequency = event.target.value
-        chrome.storage.local.set({ frequency })
-    })
-}
+    let defaultFrequency = '0.1'
+    if (data.frequency) {
+        defaultFrequency = data.frequency
+    }
+    chrome.storage.local.set({ frequency: defaultFrequency })
+    displayOptionsToggle('frequency', options, defaultFrequency)
+})
 
 // Retrieve the model option from storage
 chrome.storage.local.get('model', (data) => {
-    let defaultModel = 'Xenova/LaMini-Neo-125M'
-    if (data.model) {
-        defaultModel = data.model
-    }
-    chrome.storage.local.set({ model: defaultModel })
-    displayModelOptions(defaultModel)
-})
-
-function displayModelOptions(currentModel) {
-    // Get the selection button element
-    const modelToggle = document.getElementById('models')
-
-    // Create the selection box element
-    const selectionBox = document.createElement('div')
-    selectionBox.id = 'selection-box models'
-    selectionBox.className = 'selection-box models'
-
-    // Create the radio button options
     const options = [
         { value: 'Xenova/LaMini-Neo-125M', label: 'EleutherAI/GPT-Neo-125M' },
         // { value: 'Xenova/OpenELM-270M-Instruct', label: 'Apple/OpenELM-270M' }, // unsupported?
@@ -174,14 +114,31 @@ function displayModelOptions(currentModel) {
         }
     ]
 
+    let defaultModel = 'Xenova/LaMini-Neo-125M'
+    if (data.model) {
+        defaultModel = data.model
+    }
+    chrome.storage.local.set({ model: defaultModel })
+    displayOptionsToggle('model', options, defaultModel)
+})
+
+function displayOptionsToggle(elementId, options, currentValue) {
+    // Get the selection button element
+    const toggle = document.getElementById(elementId)
+
+    // Create the selection box element
+    const selectionBox = document.createElement('div')
+    selectionBox.id = `selection-box ${elementId}`
+    selectionBox.className = `selection-box ${elementId}`
+
     options.forEach((option) => {
         const label = document.createElement('label')
         const radio = document.createElement('input')
         radio.type = 'radio'
-        radio.name = 'model'
+        radio.name = elementId
         radio.value = option.value
 
-        if (currentModel === option.value) {
+        if (currentValue === option.value) {
             radio.checked = true
         }
 
@@ -191,66 +148,16 @@ function displayModelOptions(currentModel) {
     })
 
     // Append the selection box to the selection button
-    modelToggle.appendChild(selectionBox)
+    toggle.appendChild(selectionBox)
 
     // Toggle the selection box visibility when the selection button is clicked
-    modelToggle.addEventListener('click', () => {
+    toggle.addEventListener('click', () => {
         selectionBox.style.display =
             selectionBox.style.display === 'block' ? 'none' : 'block'
     })
 
     // Handle the selection change event
     selectionBox.addEventListener('change', (event) => {
-        const model = event.target.value
-        chrome.storage.local.set({ model: model })
+        chrome.storage.local.set({ [elementId]: event.target.value })
     })
 }
-
-function isChromiumBased() {
-    const userAgent = navigator.userAgent.toLowerCase()
-    return userAgent.includes('chrome') || userAgent.includes('chromium')
-}
-
-function getRandomScreenPosition() {
-    const screenWidth = window.screen.availWidth
-    const screenHeight = window.screen.availHeight
-    const windowWidth = 400
-    const windowHeight = 500
-    const maxLeft = screenWidth - windowWidth
-    const maxTop = screenHeight - windowHeight
-
-    const left = Math.floor(Math.random() * maxLeft)
-    const top = Math.floor(Math.random() * maxTop)
-
-    return { left, top }
-}
-
-const desiredWindowCount = 2
-
-// Manifest v3 forces us to open 3 windows, such that WebRTC will connect between them.
-// This will force Chromium to allow the output connections, and connect to GUN.
-// Opening a single instance will NEVER connect to GUN on v3.
-// if (isChromiumBased()) {
-//     chrome.windows.getAll({ populate: true }, (windows) => {
-//         const extensionWindows = windows.filter((window) =>
-//             window.tabs.some((tab) => tab.url.includes('chrome-extension://'))
-//         )
-
-//         const windowsToOpen = desiredWindowCount - extensionWindows.length
-
-//         if (windowsToOpen > 0) {
-//             for (let i = 0; i < windowsToOpen; i++) {
-//                 const { left, top } = getRandomScreenPosition()
-//                 chrome.windows.create({
-//                     url: 'index.html',
-//                     type: 'popup',
-//                     focused: true,
-//                     width: 400,
-//                     height: 500,
-//                     left,
-//                     top
-//                 })
-//             }
-//         }
-//     })
-// }
