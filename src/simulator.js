@@ -173,23 +173,57 @@ function drawSynapseLine(atom1, atom2) {
     ctx.stroke()
 }
 
+// Add a new function to calculate curved trajectory
+function calculateCurvedTrajectory(start, end, progress, curveFactor) {
+    const dx = end.x - start.x
+    const dy = end.y - start.y
+
+    // Apply SiLU to progress for non-linear movement
+    const curvedProgress = silu(progress * 6 - 3) // Scale and shift for better curve
+
+    // Calculate midpoint
+    const midX = (start.x + end.x) / 2
+    const midY = (start.y + end.y) / 2
+
+    // Apply curve
+    const curveX = -dy * curveFactor
+    const curveY = dx * curveFactor
+
+    // Calculate position along the curve
+    const x =
+        start.x +
+        dx * curvedProgress +
+        curveX * Math.sin(Math.PI * curvedProgress)
+    const y =
+        start.y +
+        dy * curvedProgress +
+        curveY * Math.sin(Math.PI * curvedProgress)
+
+    return { x, y }
+}
+
 function moveAtomElastic(atom, repulsionX, repulsionY) {
     const dx = (atom.targetX - atom.x) * damping + repulsionX
     const dy = (atom.targetY - atom.y) * damping + repulsionY
 
     // Incorporate Z-axis into motion strength
-    const zFactor = 1 + Math.abs(atom.z) * 0.5 // Adjust 0.5 to control Z influence
+    const zFactor = 1 + Math.abs(atom.z) * 0.5
 
     const distance = Math.sqrt(dx * dx + dy * dy)
-    const threshold = 5 * zFactor // Adjust this value to control when the elastic effect starts
+    const threshold = 5 * zFactor
+
+    // Apply subtle curve to the trajectory
+    const curveFactor = 0.2 // Adjust this value to control the amount of curvature
+    const curveX = -dy * curveFactor * silu(distance / 100) // Use SiLU for smooth curve application
+    const curveY = dx * curveFactor * silu(distance / 100)
 
     if (distance < threshold) {
         const elasticFactor = (threshold - distance) / threshold
-        const elasticDamping = 0.1 * zFactor // Adjust this value to control the strength of the elastic effect
-        const elasticDx = dx * elasticFactor * elasticDamping
-        const elasticDy = dy * elasticFactor * elasticDamping
+        const elasticDamping = 0.1 * zFactor
+        const elasticDx = (dx + curveX) * elasticFactor * elasticDamping
+        const elasticDy = (dy + curveY) * elasticFactor * elasticDamping
 
-        atom.vx = (atom.vx || 0) * 0.9 + elasticDx // Apply momentum
+        atom.vx = (atom.vx || 0) * 0.9 + elasticDx
         atom.vy = (atom.vy || 0) * 0.9 + elasticDy
 
         return {
@@ -197,8 +231,8 @@ function moveAtomElastic(atom, repulsionX, repulsionY) {
             y: atom.y + atom.vy
         }
     } else {
-        atom.vx = dx
-        atom.vy = dy
+        atom.vx = dx + curveX
+        atom.vy = dy + curveY
         return {
             x: atom.x + atom.vx,
             y: atom.y + atom.vy
