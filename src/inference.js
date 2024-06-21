@@ -1,4 +1,5 @@
 import { pipeline, env } from '@xenova/transformers'
+import db from './db.js'
 import { delay, eventHandler, randomBetween } from './common.js'
 
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
@@ -130,6 +131,7 @@ export async function doInference(data) {
             }
             if (shouldReturn) {
                 sendMessage({ status: 'complete', output })
+                db.emit('toDatabase', { action: 'toDatabase', data: output })
                 break
             }
         }

@@ -1,4 +1,3 @@
-// importScripts('gun/gun.min.js')
 import Gun from 'gun'
 // // import SEA from 'gun/sea.js'
 import 'gun/lib/radix.js'

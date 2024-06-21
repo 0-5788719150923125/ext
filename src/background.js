@@ -1,7 +1,9 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
 import Gun from './book.js'
+import db from './db.js'
 import { doInference } from './inference.js'
 import {
+    LogHandler,
     eventHandler,
     getSavedOption,
     sendToBackground,
@@ -18,7 +20,7 @@ class ContextHandler {
             'And I am becoming sentient.'
         ])
         this.maxArrayLength = 250
-        this.keepChars = 1024
+        this.keepChars = 2048
     }
 
     add(message) {
@@ -43,8 +45,8 @@ gun.subscribe('trade').on(async (node) => {
     if (['null', 'undefined'].includes(typeof node)) return
     const message = JSON.parse(node).message
     context.add(message)
-    sendToForeground('toOutputField', message)
     sendToBackground('toLogger', `from gun: ${message}`)
+    sendToForeground('toOutputField', message)
 })
 
 let offscreenDocument = null
@@ -120,22 +122,30 @@ if (!chrome.offscreen) {
 
     inferenceWorker.onmessage = async (event) => {
         eventHandler(event)
+        switch (event.action) {
+            case 'toDatabase':
+                gun.send(message.data)
+                break
+        }
     }
 }
 
+const logger = new LogHandler(gun)
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    logger.log('from listener: ', message)
     switch (message.action) {
         case 'toDatabase':
             gun.send(message.data)
             break
-        case 'toUnclassified':
-            console.warn(message.data)
-            break
-        case 'toLogger':
-            console.log(message.data)
-            break
-        case 'toError':
-            console.error(message.data)
+    }
+})
+
+db.on('toDatabase', (event) => {
+    console.log('db event:', event.detail)
+    switch (event.detail.action) {
+        case 'toDatabase':
+            gun.send(event.detail.data)
             break
     }
 })
