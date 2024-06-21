@@ -1,5 +1,6 @@
+// importScripts('gun/gun.min.js')
 import Gun from 'gun'
-// import SEA from 'gun/sea.js'
+// // import SEA from 'gun/sea.js'
 import 'gun/lib/radix.js'
 import 'gun/lib/radisk.js'
 import 'gun/lib/store.js'
@@ -15,7 +16,14 @@ class Controller {
             file: 'gun',
             localStorage: false,
             radisk: false,
-            axe: false
+            axe: false,
+            // We have to pass the necessary APIs to GUN, else GUN will
+            // register itself to the browser's foreground context - rather
+            // than the background (service worker) context.
+            WebSocket: self.WebSocket,
+            crypto: self.crypto,
+            TextEncoder: self.TextEncoder,
+            TextDecoder: self.TextDecoder
         })
     }
 

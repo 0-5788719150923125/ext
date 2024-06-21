@@ -1,6 +1,11 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
-import Gun from './gun.js'
-import { eventHandler, getSavedOption, sendToForeground } from './common.js'
+import Gun from './book.js'
+import {
+    eventHandler,
+    getSavedOption,
+    sendToBackground,
+    sendToForeground
+} from './common.js'
 
 class ContextHandler {
     constructor() {
@@ -36,8 +41,10 @@ let gun = new Gun()
 gun.subscribe('trade').on(async (node) => {
     if (['null', 'undefined'].includes(typeof node)) return
     const message = JSON.parse(node).message
+    console.log('from gun:', message)
     context.add(message)
     sendToForeground('toOutputField', message)
+    sendToBackground('toLogger', `from gun: ${message}`)
 })
 
 let offscreenDocument = null

@@ -230,27 +230,27 @@ const desiredWindowCount = 2
 // Manifest v3 forces us to open 3 windows, such that WebRTC will connect between them.
 // This will force Chromium to allow the output connections, and connect to GUN.
 // Opening a single instance will NEVER connect to GUN on v3.
-if (isChromiumBased()) {
-    chrome.windows.getAll({ populate: true }, (windows) => {
-        const extensionWindows = windows.filter((window) =>
-            window.tabs.some((tab) => tab.url.includes('chrome-extension://'))
-        )
+// if (isChromiumBased()) {
+//     chrome.windows.getAll({ populate: true }, (windows) => {
+//         const extensionWindows = windows.filter((window) =>
+//             window.tabs.some((tab) => tab.url.includes('chrome-extension://'))
+//         )
 
-        const windowsToOpen = desiredWindowCount - extensionWindows.length
+//         const windowsToOpen = desiredWindowCount - extensionWindows.length
 
-        if (windowsToOpen > 0) {
-            for (let i = 0; i < windowsToOpen; i++) {
-                const { left, top } = getRandomScreenPosition()
-                chrome.windows.create({
-                    url: 'index.html',
-                    type: 'popup',
-                    focused: true,
-                    width: 400,
-                    height: 500,
-                    left,
-                    top
-                })
-            }
-        }
-    })
-}
+//         if (windowsToOpen > 0) {
+//             for (let i = 0; i < windowsToOpen; i++) {
+//                 const { left, top } = getRandomScreenPosition()
+//                 chrome.windows.create({
+//                     url: 'index.html',
+//                     type: 'popup',
+//                     focused: true,
+//                     width: 400,
+//                     height: 500,
+//                     left,
+//                     top
+//                 })
+//             }
+//         }
+//     })
+// }

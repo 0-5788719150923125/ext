@@ -15,7 +15,8 @@ const config = {
         popup: './src/popup.js',
         content: './src/content.js',
         offscreen: './src/offscreen.js',
-        worker: './src/worker.js'
+        worker: './src/worker.js',
+        book: './src/book.js'
     },
     output: {
         path: path.resolve(__dirname, `dist/${browser}`),
