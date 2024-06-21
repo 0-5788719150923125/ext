@@ -29,10 +29,20 @@ const config = {
             maxSize: 1000000 // 1MB in bytes
         }
     },
+    // resolve: {
+    //     fallback: {
+    //         fs: false,
+    //         path: false,
+    //         crypto: false
+    //     }
+    // },
     plugins: [
         new webpack.optimize.LimitChunkCountPlugin({
             maxChunks: 50
         }),
+        // new webpack.IgnorePlugin({
+        //     resourceRegExp: /onnxruntime-node/
+        // }),
         new HtmlWebpackPlugin({
             template: './src/index.html',
             filename: 'index.html'

@@ -198,3 +198,60 @@ body {
   border-radius: 3px;
   text-shadow: 0 0 5px white, 0 0 10px white;
 }
+
+.selection-box.temperature {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 10px;
+}
+
+.slider-wrapper {
+  height: 150px;
+  display: flex;
+  align-items: center;
+}
+
+#temperature-slider {
+  -webkit-appearance: none;
+  width: 150px;
+  height: 20px;
+  background: #d3d3d3;
+  outline: none;
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+#temperature-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #4caf50;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+#temperature-slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #4caf50;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+#temperature-value {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.icon-button {
+  position: relative;
+}

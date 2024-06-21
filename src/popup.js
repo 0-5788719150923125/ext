@@ -164,6 +164,55 @@ function displayOptionsToggle(elementId, options, currentValue) {
     })
 }
 
+// Retrieve the temperature value from storage
+chrome.storage.local.get('temperature', (data) => {
+    let defaultTemperature = '1.0'
+    if (data.temperature) {
+        defaultTemperature = data.temperature
+    }
+    chrome.storage.local.set({ temperature: defaultTemperature })
+    setupTemperatureSlider(defaultTemperature)
+})
+
+function setupTemperatureSlider(defaultTemperature) {
+    const temperatureButton = document.getElementById('temperature')
+    const sliderContainer = document.getElementById(
+        'temperature-slider-container'
+    )
+    const slider = document.getElementById('temperature-slider')
+    const valueDisplay = document.getElementById('temperature-value')
+
+    // Set initial value
+    slider.value = defaultTemperature
+    valueDisplay.textContent = defaultTemperature
+
+    // Toggle the slider container visibility when the temperature button is clicked
+    temperatureButton.addEventListener('click', (event) => {
+        event.stopPropagation() // Prevent the click from immediately closing the slider
+        sliderContainer.style.display =
+            sliderContainer.style.display === 'flex' ? 'none' : 'flex'
+    })
+
+    // Update the value display and save to storage when the slider changes
+    slider.addEventListener('input', () => {
+        const value = parseFloat(slider.value).toFixed(1)
+        valueDisplay.textContent = value
+        chrome.storage.local.set({ temperature: value })
+    })
+}
+
+// Close the slider when clicking outside
+document.addEventListener('click', (event) => {
+    const temperatureButton = document.getElementById('temperature')
+    const sliderContainer = document.getElementById(
+        'temperature-slider-container'
+    )
+
+    if (!temperatureButton.contains(event.target)) {
+        sliderContainer.style.display = 'none'
+    }
+})
+
 const tokenGenerator = SleepTokenizer()
 
 function getLatestSleepTokens() {

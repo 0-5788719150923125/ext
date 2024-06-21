@@ -27,6 +27,22 @@
       <pre id="topic">trade</pre>
       <button class="icon-button" id="temperature">
         <img src="static/thermometer.png" alt="Temperature" />
+        <div
+          class="selection-box temperature"
+          id="temperature-slider-container"
+        >
+          <div class="slider-wrapper">
+            <input
+              type="range"
+              id="temperature-slider"
+              min="0"
+              max="2"
+              step="0.1"
+              value="1"
+            />
+          </div>
+          <span id="temperature-value">1.0</span>
+        </div>
       </button>
       <button class="icon-button" id="frequency">
         <img src="static/pulse.png" alt="Frequency" />
