@@ -7,6 +7,7 @@ const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 const topicElement = document.getElementById('topic')
 const trainLink = document.getElementById('trainLink')
+const tokenLink = document.getElementById('sleepToken')
 
 // Function to update the URL with a new word
 function updateTrainLink(word) {
@@ -170,16 +171,18 @@ function getLatestSleepTokens() {
 
 function updateSleepScore() {
     const leepScore = getLatestSleepTokens()
-    document.getElementById('sleepToken').textContent =
-        '$LEEP: ' + leepScore.toFixed(4)
+    tokenLink.textContent = '$LEEP: ' + leepScore.toFixed(4)
 }
 
+let frame = 0
 function animationLoop() {
-    setInterval(() => {
-        // Run the simulation and send the updated state to the popup
+    frame++
+    if (frame % 60 === 0) {
         updateSleepScore()
-        requestAnimationFrame(animationLoop)
-    }, 100) // Adjust the interval as needed
+        frame = 0
+    }
+
+    requestAnimationFrame(animationLoop)
 }
 
 animationLoop()
