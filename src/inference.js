@@ -51,19 +51,19 @@ const classify = async (context, options) => {
     return await model(question, context, options)
 }
 
-function sendMessage(message) {
+function sendMessage(data) {
     if (typeof self !== 'undefined' && self.postMessage) {
         // Web Worker context
-        self.postMessage(message)
+        self.postMessage(data)
     } else {
         // Service Worker context
-        eventHandler({ data: message })
+        eventHandler({ data })
     }
 }
 
 export async function doInference(data) {
     try {
-        const { prompt, generatorOptions } = data
+        const { action, prompt, generatorOptions } = data
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let output = await classify(prompt, generatorOptions)

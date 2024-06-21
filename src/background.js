@@ -1,5 +1,6 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
 import Gun from './book.js'
+import { doInference } from './inference.js'
 import {
     eventHandler,
     getSavedOption,
@@ -90,20 +91,23 @@ async function sendMessageToOffscreen(data) {
         offscreenDocument = await createOffscreenDocument()
     }
 
-    chrome.runtime.sendMessage({ action: 'createWorker', data }, (response) => {
-        // This will always fail when extension popup is closed
-        if (chrome.runtime.lastError) {
-            // Handle the case when the receiving end does not exist
-            if (typeof callback === 'function') {
-                callback({ error: chrome.runtime.lastError.message })
-            }
-        } else {
-            // Handle the successful response
-            if (typeof callback === 'function') {
-                callback(response)
+    chrome.runtime.sendMessage(
+        { ...data, action: 'createWorker' },
+        (response) => {
+            // This will always fail when extension popup is closed
+            if (chrome.runtime.lastError) {
+                // Handle the case when the receiving end does not exist
+                if (typeof callback === 'function') {
+                    callback({ error: chrome.runtime.lastError.message })
+                }
+            } else {
+                // Handle the successful response
+                if (typeof callback === 'function') {
+                    callback(response)
+                }
             }
         }
-    })
+    )
 }
 
 // Create the web worker directly (Firefox, Manifest v2)
@@ -160,16 +164,14 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         await submitInferenceRequest(context.get(), {
             model,
             do_sample: true,
-            temperature: 0.45,
-            max_new_tokens: 59,
+            temperature: 0.7,
+            max_new_tokens: 60,
             repetition_penalty: 1.1,
             no_repeat_ngram_size: 7,
             frequency: currentFrequency
         })
     })
 })
-
-import { doInference } from './inference.js'
 
 async function submitInferenceRequest(prompt, options) {
     const args = {
