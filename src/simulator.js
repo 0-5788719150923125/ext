@@ -14,8 +14,8 @@ const repulsionStrength = 0.1
 
 // Mass accumulation parameters
 const massAccumulationRate = 0.001
-const maxMass = 5
-const minMass = 0.5
+const maxMass = 10
+const minMass = 0.25
 
 // Monte Carlo simulation
 let heads = {}
@@ -393,7 +393,7 @@ function sigmoid(x) {
     return 1 / (1 + Math.exp(-10 * (x - 0.5)))
 }
 
-function* leepScoreGenerator() {
+function* sleepTokenGenerator() {
     const baseRadius = 23
     const maxDistance = Math.sqrt(
         Math.pow(canvas.width, 2) + Math.pow(canvas.height, 2)
@@ -483,4 +483,4 @@ function* leepScoreGenerator() {
 }
 
 // Export the generator function
-export default leepScoreGenerator
+export default sleepTokenGenerator

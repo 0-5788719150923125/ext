@@ -25,6 +25,7 @@ function updateInputUI(string) {
 }
 
 function updateTopicUI(string) {
+    console.log(string)
     topicElement.innerText = string
     updateTrainLink(string.slice(0, 256))
 }
