@@ -163,6 +163,8 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     })
 })
 
+import { doInference } from './inference.js'
+
 async function submitInferenceRequest(prompt, options) {
     const args = {
         action: 'inference',
@@ -170,10 +172,23 @@ async function submitInferenceRequest(prompt, options) {
         generatorOptions: options
     }
     if (!chrome.offscreen) {
-        inferenceWorker.postMessage(args)
+        if (isUIOpen()) {
+            console.log('popup was open')
+            inferenceWorker.postMessage(args)
+        } else {
+            console.log('popup was closed')
+            await doInference(args)
+        }
     } else {
         await sendMessageToOffscreen(args)
     }
+}
+
+function isUIOpen() {
+    return (
+        chrome.extension.getViews({ type: 'popup' }).length > 0 ||
+        chrome.extension.getViews({ type: 'tab' }).length > 0
+    )
 }
 
 // This is a hack, maybe an exploit, but it used to be considered a feature by Google:

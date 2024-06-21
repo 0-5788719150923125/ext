@@ -1,10 +1,14 @@
 // popup.js - handles interaction with the extension's popup, sends requests to the
 // service worker (background.js), and updates the popup's UI (index.html) on completion.
 
+import './simulator.js'
+
 const inputElement = document.getElementById('input')
 const outputElement = document.getElementById('output')
 const topicElement = document.getElementById('topic')
 const trainLink = document.getElementById('trainLink')
+
+console.log(window.location.href)
 
 // Function to update the URL with a new word
 function updateTrainLink(word) {
