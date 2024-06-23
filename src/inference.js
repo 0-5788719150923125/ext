@@ -98,12 +98,12 @@ export async function doInference(data) {
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let output = await classify(prompt, generatorOptions)
-        let answer = cleanPrediction(output)
-
-        sendMessage({
-            action: 'toTopic',
-            answer
-        })
+        if (output) {
+            sendMessage({
+                action: 'toTopic',
+                answer: cleanPrediction(output)
+            })
+        }
 
         const roll = Math.random()
         if (roll >= generatorOptions.frequency) return

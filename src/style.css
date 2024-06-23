@@ -43,6 +43,7 @@ h2 {
   margin-top: 20px;
   overflow-y: auto;
   max-height: calc(100vh - 200px);
+  position: relative;
 }
 
 .atoms {
@@ -77,6 +78,20 @@ body {
   overflow-wrap: break-word;
   white-space: pre-wrap;
   text-align: center;
+  transform-origin: top center;
+  transition: transform 0.3s ease-in-out;
+}
+
+@media (max-height: 600px) {
+  #output {
+    transform: scale(0.8);
+  }
+}
+
+@media (max-height: 400px) {
+  #output {
+    transform: scale(0.6);
+  }
 }
 
 #slate {
