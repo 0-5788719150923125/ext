@@ -1,11 +1,11 @@
 {
   "name": "wyrm",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Wyrm | Feeding Machines",
   "scripts": {
     "version": "echo $npm_package_version",
-    "build:chromium": "webpack --node-env chromium",
-    "build:firefox": "webpack --node-env firefox",
+    "build:chromium": "webpack --mode production --node-env chromium",
+    "build:firefox": "webpack --mode production --node-env firefox",
     "dev:chromium": "webpack --watch --node-env chromium",
     "dev:firefox": "webpack --watch --node-env firefox",
     "package": "VERSION=${npm_package_version} sh package.sh"
@@ -16,11 +16,12 @@
   "devDependencies": {
     "copy-webpack-plugin": "^11.0.0",
     "html-webpack-plugin": "^5.5.1",
+    "terser-webpack-plugin": "^5.3.10",
     "webpack": "^5.79.0",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
-    "@xenova/transformers": "^2.0.0",
+    "@xenova/transformers": "^2.17.2",
     "gun": "https://github.com/amark/gun.git"
   }
 }

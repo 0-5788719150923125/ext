@@ -2,6 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import webpack from 'webpack'
+import TerserPlugin from 'terser-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import CopyPlugin from 'copy-webpack-plugin'
 
@@ -16,20 +17,68 @@ const config = {
         popup: './src/popup.js',
         content: './src/content.js',
         offscreen: './src/offscreen.js',
-        worker: './src/worker.js',
-        book: './src/book.js'
+        worker: './src/worker.js'
     },
     output: {
         path: path.resolve(__dirname, `dist/${browser}`),
         filename: '[name].js'
     },
     // optimization: {
+    //     usedExports: true,
+    //     minimize: true,
+    //     minimizer: [
+    //         new TerserPlugin({
+    //             terserOptions: {
+    //                 compress: {
+    //                     drop_console: true,
+    //                     dead_code: true,
+    //                     conditionals: true,
+    //                     evaluate: true,
+    //                     booleans: true,
+    //                     loops: true,
+    //                     unused: true,
+    //                     hoist_funs: true,
+    //                     keep_fargs: false,
+    //                     hoist_vars: true,
+    //                     if_return: true,
+    //                     join_vars: true,
+    //                     // cascade: true,
+    //                     side_effects: true,
+    //                     warnings: false
+    //                 }
+    //             }
+    //         })
+    //     ]
+    // },
+    // optimization: {
+    //     usedExports: true,
+    //     minimize: true,
+    //     minimizer: [
+    //         new TerserPlugin({
+    //             terserOptions: {
+    //                 compress: {
+    //                     drop_console: true
+    //                 }
+    //             }
+    //         })
+    //     ],
     //     splitChunks: {
-    //         // chunks: 'all',
-    //         chunks(chunk) {
-    //             return chunk.name !== 'background'
-    //         },
-    //         maxSize: 1000000 // 1MB in bytes
+    //         chunks: 'all', // Changed from 'async' to 'all'
+    //         maxSize: 2000000, // 2MB in bytes
+    //         minSize: 20000, // 20KB in bytes
+    //         enforceSizeThreshold: 50000, // 50KB in bytes
+    //         cacheGroups: {
+    //             defaultVendors: {
+    //                 test: /[\\/]node_modules[\\/]/,
+    //                 priority: -10,
+    //                 reuseExistingChunk: true
+    //             },
+    //             default: {
+    //                 minChunks: 2,
+    //                 priority: -20,
+    //                 reuseExistingChunk: true
+    //             }
+    //         }
     //     }
     // },
     // resolve: {
