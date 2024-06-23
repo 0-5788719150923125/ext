@@ -29,7 +29,7 @@ function updateTopicUI(string) {
     if (string.length > 60) {
         string = string.slice(0, 60) + '...'
     }
-    topicElement.innerText = string
+    topicElement.innerText = string.toUpperCase()
     updateTrainLink(string.slice(0, 256))
 }
 
@@ -171,7 +171,7 @@ function displayOptionsToggle(elementId, options, currentValue) {
 
 // Retrieve the temperature value from storage
 chrome.storage.local.get('temperature', (data) => {
-    let defaultTemperature = '1.0'
+    let defaultTemperature = '0.5'
     if (data.temperature) {
         defaultTemperature = data.temperature
     }

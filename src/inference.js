@@ -25,8 +25,23 @@ class InferenceSingleton {
     }
 }
 
+// class ClassifierSingleton {
+//     static task = 'question-answering'
+//     static instance = null
+
+//     static async getInstance(model, progress_callback = null) {
+//         if (this.instance === null) {
+//             this.instance = pipeline(this.task, model, {
+//                 progress_callback
+//             })
+//         }
+
+//         return this.instance
+//     }
+// }
+
 class ClassifierSingleton {
-    static task = 'question-answering'
+    static task = 'fill-mask'
     static instance = null
 
     static async getInstance(model, progress_callback = null) {
@@ -40,16 +55,31 @@ class ClassifierSingleton {
     }
 }
 
+function randomValueFromArray(array, biasFactor = 1) {
+    const randomIndex = Math.floor(
+        Math.pow(Math.random(), biasFactor) * array.length
+    )
+    return array[randomIndex]
+}
+
 // Create generic classify function
 const classify = async (context, options) => {
-    let model = await ClassifierSingleton.getInstance(
-        'Xenova/distilbert-base-uncased-distilled-squad'
-    )
+    try {
+        let model = await ClassifierSingleton.getInstance(
+            'Xenova/bert-base-cased'
+        )
 
-    let question =
-        'In 3-5 words, what is this conversation about? What are we discussing?'
-
-    return await model(question, context, options)
+        const outputs = await model(
+            context + 'The topic of this conversation is about [MASK].',
+            {
+                topk: 3
+            }
+        )
+        const choice = randomValueFromArray(outputs)
+        return choice.token_str
+    } catch (err) {
+        console.error(err)
+    }
 }
 
 function sendMessage(data) {
@@ -68,12 +98,11 @@ export async function doInference(data) {
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let output = await classify(prompt, generatorOptions)
-        let answer = cleanPrediction(output.answer)
+        let answer = cleanPrediction(output)
 
         sendMessage({
             action: 'toTopic',
-            answer,
-            score: output.score
+            answer
         })
 
         const roll = Math.random()

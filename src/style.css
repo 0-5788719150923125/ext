@@ -79,19 +79,6 @@ body {
   text-align: center;
 }
 
-#topic {
-  font-size: 0.7em;
-  font-family: 'Roboto Mono', monospace;
-  color: black;
-  text-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px white, 0 0 20px white,
-    0 0 30px white, 0 0 40px white, 0 0 55px white, 0 0 75px white;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
-  text-align: center;
-  margin-right: auto;
-}
-
 #slate {
   width: 100%;
   height: 100%;
@@ -101,16 +88,6 @@ body {
 .overlay {
   filter: blur(0px);
 }
-
-/* .button-container {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  display: flex;
-  gap: 10px;
-  margin: 10px;
-  z-index: 1001;
-} */
 
 .button-container {
   position: fixed;
@@ -182,11 +159,30 @@ body {
   white-space: nowrap;
 }
 
+#topic {
+  font-size: 0.7em;
+  font-family: 'Roboto Mono', monospace;
+  /* color: black; */
+  text-shadow: 0 0 5px white, 0 0 10px white, 0 0 15px white, 0 0 20px white,
+    0 0 30px white, 0 0 40px white, 0 0 55px white, 0 0 75px white;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 2px 5px;
+  border-radius: 3px;
+  order: -1; /* This will move the topic to the left */
+}
+
 .sleep-token-container {
+  font-size: 0.7em;
+  font-family: 'Roboto Mono', monospace;
   position: fixed;
   bottom: 50px; /* Adjust this value to position it above the buttons */
   right: 10px;
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   z-index: 1001;
 }
 
@@ -220,6 +216,7 @@ body {
 }
 
 #temperature-slider {
+  appearance: none;
   -webkit-appearance: none;
   width: 150px;
   height: 20px;
