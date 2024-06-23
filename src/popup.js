@@ -25,7 +25,9 @@ function updateInputUI(string) {
 }
 
 function updateTopicUI(string) {
-    console.log(string)
+    if (string.length > 60) {
+        string = string.slice(0, 60) + '...'
+    }
     topicElement.innerText = string
     updateTrainLink(string.slice(0, 256))
 }
@@ -43,9 +45,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             updateOutputUI(data)
             break
         case 'toInputField':
+            // if (isUserTyping()) break
             updateInputUI(data)
             break
         case 'floatRight':
+            if (isUserTyping()) break
             inputElement.classList.add('right-align')
             break
         case 'floatLeft':
@@ -212,6 +216,27 @@ document.addEventListener('click', (event) => {
         sliderContainer.style.display = 'none'
     }
 })
+
+// Global variable to track input focus
+let isInputFocused = false
+
+document.addEventListener('DOMContentLoaded', () => {
+    const inputElement = document.getElementById('input')
+
+    // Set focus flag to true when input gains focus
+    inputElement.addEventListener('focus', () => {
+        isInputFocused = true
+    })
+
+    // Set focus flag to false when input loses focus
+    inputElement.addEventListener('blur', () => {
+        isInputFocused = false
+    })
+})
+
+function isUserTyping() {
+    return isInputFocused
+}
 
 const tokenGenerator = SleepTokenizer()
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "The Link",
+  "name": "Wyrm",
   "description": "Feeding Machines",
-  "version": "0.0.2",
+  "version": "0.0.3",
 
   "background": {
     "scripts": ["background.js"]
@@ -12,7 +12,7 @@
     "browser_style": true
   },
   "browser_action": {
-    "default_title": "The Link",
+    "default_title": "Wyrm",
     "default_popup": "index.html",
     "default_icon": {
       "128": "static/icon.png"

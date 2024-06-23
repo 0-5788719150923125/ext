@@ -97,8 +97,12 @@ function drawAtoms() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Draw synapse lines first (behind atoms)
-    activeSynapseLines.forEach(({ atom1, atom2 }) => {
-        drawSynapseLine(atom1, atom2)
+    activeSynapseLines.forEach(({ atom1Index, atom2Index }) => {
+        const atom1 = heads[atom1Index]
+        const atom2 = heads[atom2Index]
+        if (atom1 && atom2) {
+            drawSynapseLine(atom1, atom2)
+        }
     })
 
     Object.entries(heads).forEach(([i, atom]) => {
@@ -173,6 +177,15 @@ function drawSynapseLine(atom1, atom2) {
     ctx.stroke()
 }
 
+// Add this function at the beginning of your code
+function limitSpeed(speed, maxSpeed) {
+    if (speed <= maxSpeed) return speed
+    const t = (speed - maxSpeed) / maxSpeed
+    const limitFactor = 0.5 * (1 + Math.cos(Math.PI * Math.min(t, 1)))
+    return maxSpeed + (speed - maxSpeed) * limitFactor
+}
+
+// Modify the moveAtomElastic function
 function moveAtomElastic(atom, repulsionX, repulsionY) {
     const dx = (atom.targetX - atom.x) * damping + repulsionX
     const dy = (atom.targetY - atom.y) * damping + repulsionY
@@ -184,9 +197,11 @@ function moveAtomElastic(atom, repulsionX, repulsionY) {
     const threshold = 5 * zFactor
 
     // Apply subtle curve to the trajectory
-    const curveFactor = 0.2 // Adjust this value to control the amount of curvature
-    const curveX = -dy * curveFactor * silu(distance / 100) // Use SiLU for smooth curve application
+    const curveFactor = 0.2
+    const curveX = -dy * curveFactor * silu(distance / 100)
     const curveY = dx * curveFactor * silu(distance / 100)
+
+    const maxSpeed = 10 // Adjust this value to set the maximum speed
 
     if (distance < threshold) {
         const elasticFactor = (threshold - distance) / threshold
@@ -196,18 +211,19 @@ function moveAtomElastic(atom, repulsionX, repulsionY) {
 
         atom.vx = (atom.vx || 0) * 0.9 + elasticDx
         atom.vy = (atom.vy || 0) * 0.9 + elasticDy
-
-        return {
-            x: atom.x + atom.vx,
-            y: atom.y + atom.vy
-        }
     } else {
         atom.vx = dx + curveX
         atom.vy = dy + curveY
-        return {
-            x: atom.x + atom.vx,
-            y: atom.y + atom.vy
-        }
+    }
+
+    // Apply speed limit
+    const speed = Math.sqrt(atom.vx * atom.vx + atom.vy * atom.vy)
+    const limitedSpeed = limitSpeed(speed, maxSpeed)
+    const speedFactor = limitedSpeed / speed
+
+    return {
+        x: atom.x + atom.vx * speedFactor,
+        y: atom.y + atom.vy * speedFactor
     }
 }
 
@@ -254,10 +270,7 @@ function animateAtoms(currentTime) {
 
         // Create synapse lines for the chosen pairs
         synapsePairs.forEach(([atom1Index, atom2Index]) => {
-            const atom1 = heads[atom1Index]
-            const atom2 = heads[atom2Index]
-
-            activeSynapseLines.push({ atom1, atom2 })
+            activeSynapseLines.push({ atom1Index, atom2Index })
         })
     }
 

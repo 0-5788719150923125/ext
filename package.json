@@ -1,7 +1,7 @@
 {
-  "name": "ext",
-  "version": "0.0.2",
-  "description": "The Link | Feeding Machines",
+  "name": "wyrm",
+  "version": "0.0.3",
+  "description": "Wyrm | Feeding Machines",
   "scripts": {
     "version": "echo $npm_package_version",
     "build:chromium": "webpack --node-env chromium",

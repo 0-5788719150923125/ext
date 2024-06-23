@@ -54,7 +54,7 @@ export function eventHandler(event) {
         sendToForeground('toTopic', event.data.answer)
     } else if (event.data.status === 'partial') {
         sendToForeground('floatRight')
-        sendToForeground('toInputField', event.data.input + '//:link')
+        sendToForeground('toInputField', event.data.input + '//:dst')
     } else if (event.data.status === 'complete') {
         if (event.data.output.length > 2) {
             sendToForeground('toOutputField', event.data.output)
