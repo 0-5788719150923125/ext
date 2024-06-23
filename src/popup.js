@@ -243,24 +243,51 @@ function isUserTyping() {
 const tokenizer = SleepTokenizer
 const tokenGenerator = tokenizer.generator()
 
+let currentSleepScore = 0
+let targetSleepScore = 0
+let transitionProgress = 0
+
 function getLatestSleepTokens() {
     return tokenGenerator.next().value
 }
 
 function updateSleepScore() {
-    const leepScore = getLatestSleepTokens()
-    tokenLink.textContent = '$LEEP: ' + leepScore.toFixed(4)
+    currentSleepScore = targetSleepScore
+    targetSleepScore = getLatestSleepTokens()
+    transitionProgress = 0
+}
+
+function interpolateSleepScore() {
+    if (transitionProgress >= 1) {
+        return targetSleepScore
+    }
+    return (
+        currentSleepScore +
+        (targetSleepScore - currentSleepScore) * transitionProgress
+    )
+}
+
+function updateDisplay(interpolatedScore) {
+    tokenLink.textContent = '$LEEP: ' + interpolatedScore.toFixed(4)
 }
 
 let frame = 0
 function animationLoop() {
     frame++
+
     if (frame % 60 === 0) {
         updateSleepScore()
         frame = 0
     }
 
+    transitionProgress = (frame % 60) / 60
+    const interpolatedScore = interpolateSleepScore()
+    updateDisplay(interpolatedScore)
+
     requestAnimationFrame(animationLoop)
 }
+
+// Initialize the first score
+updateSleepScore()
 
 animationLoop()

@@ -66,16 +66,16 @@ function randomValueFromArray(array, biasFactor = 1) {
 }
 
 // Create generic classify function
-const classify = async (context, options) => {
+const classify = async (context) => {
     try {
-        let model = await ClassifierSingleton.getInstance(
+        let classifier = await ClassifierSingleton.getInstance(
             // 'Xenova/bert-base-cased'
             // 'Xenova/albert-large-v2'
             // 'Xenova/roberta-base'
             'Xenova/distilbert-base-uncased'
         )
 
-        const outputs = await model(
+        const outputs = await classifier(
             context + 'The main topic of this conversation is [MASK].',
             {
                 topk: 3
@@ -103,17 +103,11 @@ export async function doInference(data) {
         const { action, prompt, generatorOptions } = data
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
-        let output = await classify(prompt, generatorOptions)
+        let output = await classify(prompt)
         if (output) {
             sendMessage({
                 action: 'toTopic',
                 answer: cleanPrediction(output)
-            })
-        } else {
-            sendMessage({
-                status: 'error',
-                error: 'classification output was empty, for some reason',
-                output
             })
         }
 
