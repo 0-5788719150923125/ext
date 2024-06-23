@@ -3,6 +3,7 @@ const baseRadius = 23
 const scalingFactor = 0.01
 const bias = 10
 
+const globalTemperatureModifier = 0.8
 let temperature = 0.5 // Initialize temperature to the baseline value
 
 // Set up parameters for oscillation, focus
@@ -40,16 +41,19 @@ let massAccumulationRate = mapTemperature(
 const maxMass = 10
 const minMass = 0.25
 
+// Modify the mapTemperature function
 function mapTemperature(temp, min, max) {
     if (temp === 0) {
         return min
     } else if (temp === 2) {
         return max
     } else {
-        return min + (temp * (max - min)) / 2
+        const normalizedTemp = min + (temp * (max - min)) / 2
+        return normalizedTemp * globalTemperatureModifier
     }
 }
 
+// Update the updateTemperature function
 function updateTemperature(newTemp) {
     temperature = Math.max(0, Math.min(newTemp, 2.0))
 
@@ -78,8 +82,9 @@ function updateTemperature(newTemp) {
 
     // Update atom velocities based on the new temperature
     Object.values(heads).forEach((atom) => {
-        atom.vx *= mapTemperature(temperature, 0.1, 5)
-        atom.vy *= mapTemperature(temperature, 0.1, 5)
+        const velocityModifier = mapTemperature(temperature, 0.1, 5)
+        atom.vx *= velocityModifier
+        atom.vy *= velocityModifier
     })
 }
 

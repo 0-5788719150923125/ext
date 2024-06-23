@@ -24,6 +24,7 @@ class Controller {
             TextEncoder: self.TextEncoder,
             TextDecoder: self.TextDecoder
         })
+        this.identifier = getRandomIdentifier()
     }
 
     subscribe(focus) {
@@ -34,7 +35,7 @@ class Controller {
     send(message) {
         this.focus.put(
             JSON.stringify({
-                identifier: 'GhostIsCuteVoidGirl',
+                identifier: this.identifier,
                 message,
                 pubKey: null
             }),
@@ -45,6 +46,16 @@ class Controller {
             }
         )
     }
+}
+
+export function getRandomIdentifier() {
+    const length = Math.random() < 0.5 ? 18 : 19
+
+    let randomNumber = (Math.floor(Math.random() * 9) + 1).toString()
+    while (randomNumber.length < length) {
+        randomNumber = randomNumber + Math.floor(Math.random() * 10).toString()
+    }
+    return randomNumber
 }
 
 export default Controller

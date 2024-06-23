@@ -8,7 +8,7 @@ env.backends.onnx.wasm.numThreads = 1
 env.allowLocalModels = true
 
 // Proxy the WASM backend to prevent the UI from freezing
-env.backends.onnx.wasm.proxy = true
+// env.backends.onnx.wasm.proxy = true
 
 // Use the Singleton pattern to enable lazy construction of the pipeline.
 class InferenceSingleton {
@@ -69,11 +69,14 @@ function randomValueFromArray(array, biasFactor = 1) {
 const classify = async (context, options) => {
     try {
         let model = await ClassifierSingleton.getInstance(
-            'Xenova/bert-base-cased'
+            // 'Xenova/bert-base-cased'
+            // 'Xenova/albert-large-v2'
+            // 'Xenova/roberta-base'
+            'Xenova/distilbert-base-uncased'
         )
 
         const outputs = await model(
-            context + 'The topic of this conversation is about [MASK].',
+            context + 'The main topic of this conversation is [MASK].',
             {
                 topk: 3
             }
@@ -105,6 +108,12 @@ export async function doInference(data) {
             sendMessage({
                 action: 'toTopic',
                 answer: cleanPrediction(output)
+            })
+        } else {
+            sendMessage({
+                status: 'error',
+                error: 'classification output was empty, for some reason',
+                output
             })
         }
 
@@ -190,7 +199,11 @@ function cleanPrediction(output, prompt = '') {
         }
     }
 
-    while (clean.startsWith('¶') || clean.startsWith(' ')) {
+    while (
+        clean.startsWith('¶') ||
+        clean.startsWith(' ') ||
+        clean.startsWith('_')
+    ) {
         clean = clean.slice(1)
     }
 
