@@ -2,12 +2,7 @@
 import Gun from './book.js'
 import db from './db.js'
 import { doInference } from './inference.js'
-import {
-    eventHandler,
-    getSavedOption,
-    sendToBackground,
-    sendToForeground
-} from './common.js'
+import { eventHandler, getSavedOption, sendToForeground } from './common.js'
 
 class ContextHandler {
     constructor() {
@@ -44,7 +39,6 @@ gun.subscribe('trade').on(async (node) => {
     if (['null', 'undefined'].includes(typeof node)) return
     const message = JSON.parse(node).message
     context.add(message)
-    // sendToBackground('toLogger', `from gun: ${message}`)
     sendToForeground('toOutputField', message)
 })
 
@@ -122,7 +116,6 @@ if (!chrome.offscreen) {
     inferenceWorker.onmessage = async (event) => {
         eventHandler(event)
         if (event.data.status === 'complete') {
-            // console.log(event)
             db.emit('toRouter', {
                 action: 'toDatabase',
                 data: event.data.output
@@ -164,27 +157,39 @@ function router(detail) {
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     chrome.alarms.create('doInference', {
         periodInMinutes: 1
-        // delayInMinutes: 1
     })
 
     // Listen for a specific event and perform an action
     chrome.alarms.onAlarm.addListener(async (alarm) => {
         if (alarm.name !== 'doInference') return
 
+        let currentTemperature = 0.5
         let currentFrequency = 0.1
-        const frequency = await getSavedOption('frequency')
         const model = await getSavedOption('model')
+        const temperature = await getSavedOption('temperature')
+        const frequency = await getSavedOption('frequency')
+
+        if (temperature) {
+            currentTemperature = Number(temperature)
+        }
 
         if (frequency) {
             currentFrequency = Number(frequency)
         }
 
-        console.log('model:', model, 'frequency:', currentFrequency)
+        console.log(
+            'model:',
+            model,
+            'temperature:',
+            currentTemperature,
+            'frequency:',
+            currentFrequency
+        )
 
         await submitInferenceRequest(context.get(), {
             model,
             do_sample: true,
-            temperature: 0.7,
+            temperature: currentTemperature,
             max_new_tokens: 60,
             repetition_penalty: 1.1,
             no_repeat_ngram_size: 7,

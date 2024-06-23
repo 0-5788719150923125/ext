@@ -23,15 +23,15 @@ const config = {
         path: path.resolve(__dirname, `dist/${browser}`),
         filename: '[name].js'
     },
-    optimization: {
-        splitChunks: {
-            // chunks: 'all',
-            chunks(chunk) {
-                return chunk.name !== 'background'
-            },
-            maxSize: 1000000 // 1MB in bytes
-        }
-    },
+    // optimization: {
+    //     splitChunks: {
+    //         // chunks: 'all',
+    //         chunks(chunk) {
+    //             return chunk.name !== 'background'
+    //         },
+    //         maxSize: 1000000 // 1MB in bytes
+    //     }
+    // },
     // resolve: {
     //     fallback: {
     //         fs: false,
@@ -40,9 +40,9 @@ const config = {
     //     }
     // },
     plugins: [
-        new webpack.optimize.LimitChunkCountPlugin({
-            maxChunks: 50
-        }),
+        // new webpack.optimize.LimitChunkCountPlugin({
+        //     maxChunks: 50
+        // }),
         // new webpack.IgnorePlugin({
         //     resourceRegExp: /onnxruntime-node/
         // }),

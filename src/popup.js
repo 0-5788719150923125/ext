@@ -25,6 +25,7 @@ function updateInputUI(string) {
 }
 
 function updateTopicUI(string) {
+    if (string.length < 2) return
     if (string.length > 60) {
         string = string.slice(0, 60) + '...'
     }
@@ -199,7 +200,8 @@ function setupTemperatureSlider(defaultTemperature) {
 
     // Update the value display and save to storage when the slider changes
     slider.addEventListener('input', () => {
-        const value = parseFloat(slider.value).toFixed(1)
+        const value = parseFloat(slider.value).toFixed(2)
+        tokenizer.updateTemperature(value)
         valueDisplay.textContent = value
         chrome.storage.local.set({ temperature: value })
     })
@@ -238,7 +240,8 @@ function isUserTyping() {
     return isInputFocused
 }
 
-const tokenGenerator = SleepTokenizer()
+const tokenizer = SleepTokenizer
+const tokenGenerator = tokenizer.generator()
 
 function getLatestSleepTokens() {
     return tokenGenerator.next().value

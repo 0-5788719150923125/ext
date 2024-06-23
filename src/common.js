@@ -50,7 +50,7 @@ export async function getSavedOption(option) {
 }
 
 export function eventHandler(event) {
-    if (event.data.action === 'classification') {
+    if (event.data.action === 'toTopic') {
         sendToForeground('toTopic', event.data.answer)
     } else if (event.data.status === 'partial') {
         sendToForeground('floatRight')

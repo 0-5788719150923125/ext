@@ -70,13 +70,11 @@ export async function doInference(data) {
         let output = await classify(prompt, generatorOptions)
         let answer = cleanPrediction(output.answer)
 
-        if (answer.length > 3) {
-            sendMessage({
-                action: 'classification',
-                answer,
-                score: output.score
-            })
-        }
+        sendMessage({
+            action: 'toTopic',
+            answer,
+            score: output.score
+        })
 
         const roll = Math.random()
         if (roll >= generatorOptions.frequency) return

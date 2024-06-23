@@ -3,19 +3,85 @@ const baseRadius = 23
 const scalingFactor = 0.01
 const bias = 10
 
+let temperature = 0.5 // Initialize temperature to the baseline value
+
 // Set up parameters for oscillation, focus
-const oscillationSpeed = 0.01
-const clarityBias = 0.8
+const baseOscillationSpeed = 0.01
+const baseClarityBias = 0.8
+let oscillationSpeed = mapTemperature(
+    temperature,
+    baseOscillationSpeed * 0.5,
+    baseOscillationSpeed * 2
+)
+let clarityBias = mapTemperature(
+    temperature,
+    baseClarityBias * 1.125,
+    baseClarityBias * 0.75
+)
 
 // Control forces
-const damping = 0.01
+const baseDamping = 0.01
+const baseRepulsionStrength = 0.1
+let damping = mapTemperature(temperature, baseDamping * 0.5, baseDamping * 2)
 const tolerance = 1
-const repulsionStrength = 0.1
+let repulsionStrength = mapTemperature(
+    temperature,
+    baseRepulsionStrength * 0.5,
+    baseRepulsionStrength * 2
+)
 
 // Mass accumulation parameters
-const massAccumulationRate = 0.001
+const baseMassAccumulationRate = 0.001
+let massAccumulationRate = mapTemperature(
+    temperature,
+    baseMassAccumulationRate * 0.5,
+    baseMassAccumulationRate * 2
+)
 const maxMass = 10
 const minMass = 0.25
+
+function mapTemperature(temp, min, max) {
+    if (temp === 0) {
+        return min
+    } else if (temp === 2) {
+        return max
+    } else {
+        return min + (temp * (max - min)) / 2
+    }
+}
+
+function updateTemperature(newTemp) {
+    temperature = Math.max(0, Math.min(newTemp, 2.0))
+
+    // Update simulation parameters based on the new temperature
+    oscillationSpeed = mapTemperature(
+        temperature,
+        baseOscillationSpeed * 0.1,
+        baseOscillationSpeed * 5
+    )
+    clarityBias = mapTemperature(
+        temperature,
+        baseClarityBias * 1.5,
+        baseClarityBias * 0.5
+    )
+    damping = mapTemperature(temperature, baseDamping * 0.1, baseDamping * 5)
+    repulsionStrength = mapTemperature(
+        temperature,
+        baseRepulsionStrength * 0.1,
+        baseRepulsionStrength * 5
+    )
+    massAccumulationRate = mapTemperature(
+        temperature,
+        baseMassAccumulationRate * 0.1,
+        baseMassAccumulationRate * 5
+    )
+
+    // Update atom velocities based on the new temperature
+    Object.values(heads).forEach((atom) => {
+        atom.vx *= mapTemperature(temperature, 0.1, 5)
+        atom.vy *= mapTemperature(temperature, 0.1, 5)
+    })
+}
 
 // Monte Carlo simulation
 let heads = {}
@@ -179,10 +245,15 @@ function drawSynapseLine(atom1, atom2) {
 
 // Add this function at the beginning of your code
 function limitSpeed(speed, maxSpeed) {
-    if (speed <= maxSpeed) return speed
-    const t = (speed - maxSpeed) / maxSpeed
+    const temperatureFactor = mapTemperature(temperature, 0.1, 5)
+    if (speed <= maxSpeed * temperatureFactor) return speed
+    const t =
+        (speed - maxSpeed * temperatureFactor) / (maxSpeed * temperatureFactor)
     const limitFactor = 0.5 * (1 + Math.cos(Math.PI * Math.min(t, 1)))
-    return maxSpeed + (speed - maxSpeed) * limitFactor
+    return (
+        maxSpeed * temperatureFactor +
+        (speed - maxSpeed * temperatureFactor) * limitFactor
+    )
 }
 
 // Modify the moveAtomElastic function
@@ -286,11 +357,11 @@ function animateFieldStrength() {
     const currentTime = new Date().getTime()
     const oscillationValue = Math.sin(currentTime * oscillationSpeed)
 
-    // Calculate the SILU-weighted blur strength
+    // Calculate the SILU-weighted blur strength using the temperature-adjusted clarityBias
     const blurStrength =
         silu(oscillationValue) * (5.0 - 0.1) + 0.1 * clarityBias
 
-    // Apply the calculated blur strength to the canvas
+    // Apply the blur strength to the canvas
     canvas.style.filter = `blur(${blurStrength}px)`
 
     // Request the next animation frame
@@ -482,18 +553,29 @@ function* sleepTokenGenerator() {
             (atomCount * Math.pow(baseRadius, 2) * Math.PI) / canvasArea
         )
 
+        const stabilityWeight = mapTemperature(temperature, 0.4, 0.2)
+        const energyWeight = mapTemperature(temperature, 0.1, 0.3)
+        const distributionWeight = mapTemperature(temperature, 0.3, 0.1)
+        const synergyWeight = mapTemperature(temperature, 0.1, 0.3)
+        const coverageWeight = mapTemperature(temperature, 0.15, 0.05)
+
         // Combine all factors into a final score
         const rawScore =
-            stabilityScore * 0.3 +
-            energyScore * 0.2 +
-            distributionScore * 0.2 +
-            synergyScore * 0.2 +
-            coverage * 0.1
+            stabilityScore * stabilityWeight +
+            energyScore * energyWeight +
+            distributionScore * distributionWeight +
+            synergyScore * synergyWeight +
+            coverage * coverageWeight
 
         // Apply sigmoid function and yield the result
         yield sigmoid(rawScore)
     }
 }
 
+const simulator = {
+    generator: sleepTokenGenerator,
+    updateTemperature
+}
+
 // Export the generator function
-export default sleepTokenGenerator
+export default simulator
