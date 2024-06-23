@@ -1,5 +1,5 @@
 // popup.js - handles interaction with the extension's popup, sends requests to the
-// service worker (background.js), and updates the popup's UI (index.html) on completion.
+// service worker (background.js), and updates the popup's UI (popup.html) on completion.
 
 import SleepTokenizer from './simulator.js'
 
@@ -83,7 +83,7 @@ inputElement.addEventListener('keydown', (event) => {
 const persistButton = document.getElementById('persist')
 persistButton.addEventListener('click', () => {
     chrome.windows.create({
-        url: 'index.html',
+        url: 'popup.html',
         type: 'popup',
         focused: true,
         width: 400,

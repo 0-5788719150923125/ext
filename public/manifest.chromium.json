@@ -16,7 +16,7 @@
       "32": "static/icon.png"
     },
     "default_title": "Wyrm",
-    "default_popup": "index.html"
+    "default_popup": "popup.html"
   },
   "content_security_policy": {
     "extension_pages": "default-src 'self'; worker-src 'self'; style-src 'self'; connect-src *; media-src *; script-src 'self' 'wasm-unsafe-eval'"

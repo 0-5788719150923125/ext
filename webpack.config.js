@@ -47,8 +47,8 @@ const config = {
         //     resourceRegExp: /onnxruntime-node/
         // }),
         new HtmlWebpackPlugin({
-            template: './src/index.html',
-            filename: 'index.html'
+            template: './src/popup.html',
+            filename: 'popup.html'
         }),
         new CopyPlugin({
             patterns: [
