@@ -25,7 +25,10 @@ const config = {
     },
     optimization: {
         splitChunks: {
-            chunks: 'all',
+            // chunks: 'all',
+            chunks(chunk) {
+                return chunk.name !== 'background'
+            },
             maxSize: 1000000 // 1MB in bytes
         }
     },
