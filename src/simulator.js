@@ -353,18 +353,51 @@ function silu(x) {
     return x * (1 / (1 + Math.exp(-x)))
 }
 
+let lastBlurTime = 0
+let lastBlurInterval = 0
 function animateFieldStrength() {
     const currentTime = new Date().getTime()
-    const oscillationValue = Math.sin(currentTime * oscillationSpeed)
+    const elapsedTime = currentTime - lastBlurTime
 
-    // Calculate the SILU-weighted blur strength using the temperature-adjusted clarityBias
-    const blurStrength =
-        silu(oscillationValue) * (5.0 - 0.1) + 0.1 * clarityBias
+    // Adjust the range of intervals based on temperature
+    const minInterval = mapTemperature(temperature, 3000, 500)
+    const maxInterval = mapTemperature(temperature, 6000, 2000)
 
-    // Apply the blur strength to the canvas
-    canvas.style.filter = `blur(${blurStrength}px)`
+    // Roll the dice to determine if the blur effect should be applied
+    if (elapsedTime >= lastBlurInterval) {
+        const applyBlur = Math.random() < 0.5 // 50% chance of applying the blur effect
 
-    // Request the next animation frame
+        if (applyBlur) {
+            const blurDuration = mapTemperature(temperature, 1000, 2000)
+            const maxBlurStrength = mapTemperature(temperature, 2, 8)
+
+            let blurProgress = 0
+            const blurStep = 1 / (blurDuration / 16) // Adjust the blur over the duration
+
+            const applyBlurEffect = () => {
+                const t = silu(blurProgress)
+                const blurStrength = maxBlurStrength * t
+
+                canvas.style.filter = `blur(${blurStrength}px)`
+
+                blurProgress += blurStep
+
+                if (blurProgress <= 1) {
+                    requestAnimationFrame(applyBlurEffect)
+                } else {
+                    canvas.style.filter = 'none'
+                }
+            }
+
+            requestAnimationFrame(applyBlurEffect)
+        }
+
+        // Generate a new random interval for the next dice roll
+        lastBlurInterval =
+            Math.random() * (maxInterval - minInterval) + minInterval
+        lastBlurTime = currentTime
+    }
+
     requestAnimationFrame(animateFieldStrength)
 }
 
