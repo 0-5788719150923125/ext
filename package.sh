@@ -1,8 +1,9 @@
 #!/bin/sh
 
 rm -rf dist
+mkdir -p dist
 
-(cd .. && zip -r ext/dist/source.${VERSION}.zip ./ext -x "*.git*" "*.git/*" "node_modules/*")
+(zip -r ./dist/source.${VERSION}.zip . -x "*.git*" "*.git/*" "node_modules/*")
 
 npm run build:chromium 
 npm run build:firefox
