@@ -5,7 +5,10 @@ import { delay, eventHandler, randomBetween } from './common.js'
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
 env.backends.onnx.wasm.numThreads = 1
-env.allowLocalModels = false
+env.allowLocalModels = true
+
+// Proxy the WASM backend to prevent the UI from freezing
+env.backends.onnx.wasm.proxy = true
 
 // Use the Singleton pattern to enable lazy construction of the pipeline.
 class InferenceSingleton {
