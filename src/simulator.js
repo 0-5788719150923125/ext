@@ -3,7 +3,7 @@ const baseRadius = 23
 const scalingFactor = 0.01
 const bias = 10
 
-const globalTemperatureModifier = 0.8
+const globalTemperatureModifier = 0.6
 let temperature = 0.5 // Initialize temperature to the baseline value
 
 // Set up parameters for oscillation, focus
