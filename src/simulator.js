@@ -3,7 +3,7 @@ const baseRadius = 23
 const scalingFactor = 0.01
 const bias = 10
 
-const globalTemperatureModifier = 0.6
+const globalTemperatureModifier = 0.4
 let temperature = 0.5 // Initialize temperature to the baseline value
 
 // Set up parameters for oscillation, focus
@@ -277,8 +277,6 @@ function moveAtomElastic(atom, repulsionX, repulsionY) {
     const curveX = -dy * curveFactor * silu(distance / 100)
     const curveY = dx * curveFactor * silu(distance / 100)
 
-    const maxSpeed = 10 // Adjust this value to set the maximum speed
-
     if (distance < threshold) {
         const elasticFactor = (threshold - distance) / threshold
         const elasticDamping = 0.1 * zFactor
@@ -291,6 +289,20 @@ function moveAtomElastic(atom, repulsionX, repulsionY) {
         atom.vx = dx + curveX
         atom.vy = dy + curveY
     }
+
+    // Apply velocity damping and limiting
+    const velocityDamping = 0.98
+    const maxVelocity = 100
+    const maxSpeed = 100
+
+    atom.vx = Math.max(
+        -maxVelocity,
+        Math.min(atom.vx * velocityDamping, maxVelocity)
+    )
+    atom.vy = Math.max(
+        -maxVelocity,
+        Math.min(atom.vy * velocityDamping, maxVelocity)
+    )
 
     // Apply speed limit
     const speed = Math.sqrt(atom.vx * atom.vx + atom.vy * atom.vy)

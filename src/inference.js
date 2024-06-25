@@ -78,7 +78,7 @@ const classify = async (context) => {
         const outputs = await classifier(
             context + 'The main topic of this conversation is [MASK].',
             {
-                topk: 3
+                topk: 1
             }
         )
         const choice = randomValueFromArray(outputs)
