@@ -60,11 +60,15 @@ const classify = async (context) => {
         const outputs = await classifier(
             context + 'The main topic of this conversation is [MASK].',
             {
-                topk: 1
+                topk: 2
             }
         )
-        const choice = randomValueFromArray(outputs)
-        return choice.token_str
+        // const choice = randomValueFromArray(outputs)
+        let choice = outputs[0].token_str
+        if (choice === '¶') {
+            choice = outputs[1].token_str
+        }
+        return choice
     } catch (err) {
         console.error(err)
     }
@@ -86,12 +90,10 @@ export async function doInference(data) {
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let output = await classify(prompt)
-        if (output) {
-            sendMessage({
-                action: 'toTopic',
-                answer: cleanPrediction(output)
-            })
-        }
+        sendMessage({
+            action: 'toTopic',
+            answer: cleanPrediction(output)
+        })
 
         const roll = Math.random()
         if (roll >= generatorOptions.frequency) return

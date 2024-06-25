@@ -121,12 +121,6 @@ if (!chrome.offscreen) {
     }
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'toDatabase') {
-        db.emit('toRouter', message)
-    } else db.emit('toRouter', message.data)
-})
-
 db.on('toRouter', (event) => {
     router(event.detail)
 })
