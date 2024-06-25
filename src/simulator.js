@@ -204,7 +204,7 @@ function drawAtoms() {
             }
         })
 
-        const moveResult = moveAtomElastic(atom, repulsionX, repulsionY)
+        const moveResult = applyPerturbations(atom, repulsionX, repulsionY)
         atom.x = moveResult.x
         atom.y = moveResult.y
 
@@ -261,8 +261,7 @@ function limitSpeed(speed, maxSpeed) {
     )
 }
 
-// Modify the moveAtomElastic function
-function moveAtomElastic(atom, repulsionX, repulsionY) {
+function applyPerturbations(atom, repulsionX, repulsionY) {
     const dx = (atom.targetX - atom.x) * damping + repulsionX
     const dy = (atom.targetY - atom.y) * damping + repulsionY
 
@@ -272,28 +271,39 @@ function moveAtomElastic(atom, repulsionX, repulsionY) {
     const distance = Math.sqrt(dx * dx + dy * dy)
     const threshold = 5 * zFactor
 
-    // Apply subtle curve to the trajectory
-    const curveFactor = 0.2
+    // Generate a random curveFactor for each atom
+    const curveFactor = Math.random() * 0.4 - 0.2 // Random value between -0.2 and 0.2
+
+    // Apply the random curveFactor to the trajectory
     const curveX = -dy * curveFactor * silu(distance / 100)
     const curveY = dx * curveFactor * silu(distance / 100)
+
+    // Calculate the force factor based on atom's mass
+    const forceFactor = Math.exp(-atom.mass / maxMass)
 
     if (distance < threshold) {
         const elasticFactor = (threshold - distance) / threshold
         const elasticDamping = 0.1 * zFactor
-        const elasticDx = (dx + curveX) * elasticFactor * elasticDamping
-        const elasticDy = (dy + curveY) * elasticFactor * elasticDamping
+        const elasticDx =
+            (dx + curveX) * elasticFactor * elasticDamping * forceFactor
+        const elasticDy =
+            (dy + curveY) * elasticFactor * elasticDamping * forceFactor
 
         atom.vx = (atom.vx || 0) * 0.9 + elasticDx
         atom.vy = (atom.vy || 0) * 0.9 + elasticDy
     } else {
-        atom.vx = dx + curveX
-        atom.vy = dy + curveY
+        const decayFactor = 1 / (distance * distance)
+        const decayedDx = (dx + curveX) * forceFactor * decayFactor
+        const decayedDy = (dy + curveY) * forceFactor * decayFactor
+
+        atom.vx = decayedDx
+        atom.vy = decayedDy
     }
 
     // Apply velocity damping and limiting
     const velocityDamping = 0.98
-    const maxVelocity = 100
-    const maxSpeed = 100
+    const maxVelocity = 1000
+    const maxSpeed = 1000
 
     atom.vx = Math.max(
         -maxVelocity,
