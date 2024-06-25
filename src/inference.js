@@ -28,21 +28,6 @@ class InferenceSingleton {
     }
 }
 
-// class ClassifierSingleton {
-//     static task = 'question-answering'
-//     static instance = null
-
-//     static async getInstance(model, progress_callback = null) {
-//         if (this.instance === null) {
-//             this.instance = pipeline(this.task, model, {
-//                 progress_callback
-//             })
-//         }
-
-//         return this.instance
-//     }
-// }
-
 class ClassifierSingleton {
     static task = 'fill-mask'
     static instance = null
@@ -69,9 +54,6 @@ function randomValueFromArray(array, biasFactor = 1) {
 const classify = async (context) => {
     try {
         let classifier = await ClassifierSingleton.getInstance(
-            // 'Xenova/bert-base-cased'
-            // 'Xenova/albert-large-v2'
-            // 'Xenova/roberta-base'
             'Xenova/distilbert-base-uncased'
         )
 
