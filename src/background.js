@@ -2,7 +2,12 @@
 import Gun from './book.js'
 import db from './db.js'
 import { doInference } from './inference.js'
-import { eventHandler, getSavedOption, sendToForeground } from './common.js'
+import {
+    eventHandler,
+    getSavedOption,
+    isUIOpen,
+    sendToForeground
+} from './common.js'
 
 class ContextHandler {
     constructor() {
@@ -213,23 +218,6 @@ async function submitInferenceRequest(prompt, options) {
         await sendMessageToOffscreen(args)
     } else {
         inferenceWorker.postMessage(args)
-    }
-}
-
-async function isUIOpen() {
-    const manifest = chrome.runtime.getManifest()
-
-    if (manifest.manifest_version > 2) {
-        return (
-            (await chrome.runtime.getContexts({
-                contextTypes: ['POPUP', 'TAB']
-            }).length) > 0
-        )
-    } else {
-        return (
-            chrome.extension.getViews({ type: 'popup' }).length > 0 ||
-            chrome.extension.getViews({ type: 'tab' }).length > 0
-        )
     }
 }
 

@@ -155,7 +155,6 @@ export async function doInference(data) {
     } catch (error) {
         sendMessage({ status: 'error', error })
     }
-    sendMessage({ status: 'complete', output: '' })
 }
 
 function cleanPrediction(output, prompt = '') {

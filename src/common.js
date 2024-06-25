@@ -15,6 +15,24 @@ export function randomBetween(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
+export async function isUIOpen() {
+    if (typeof chrome === 'undefined') false
+    const manifest = chrome.runtime.getManifest()
+
+    if (manifest.manifest_version > 2) {
+        return (
+            (await chrome.runtime.getContexts({
+                contextTypes: ['POPUP', 'TAB']
+            }).length) > 0
+        )
+    } else {
+        return (
+            chrome.extension.getViews({ type: 'popup' }).length > 0 ||
+            chrome.extension.getViews({ type: 'tab' }).length > 0
+        )
+    }
+}
+
 function sendMessage(data) {
     chrome.runtime.sendMessage(data, (response) => {
         // This will always fail when extension popup is closed
