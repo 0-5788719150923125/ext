@@ -118,12 +118,6 @@ if (!chrome.offscreen) {
     })
     inferenceWorker.onmessage = async (event) => {
         eventHandler(event)
-        if (event.data.status === 'complete') {
-            db.emit('toRouter', {
-                action: 'toDatabase',
-                data: event.data.output
-            })
-        }
     }
 }
 

@@ -1,6 +1,6 @@
 import { pipeline, env } from '@xenova/transformers'
 import db from './db.js'
-import { delay, eventHandler, randomBetween } from './common.js'
+import { delay, eventHandler, isUIOpen, randomBetween } from './common.js'
 
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
@@ -147,7 +147,12 @@ export async function doInference(data) {
             if (shouldReturn) {
                 if (output.length > 2) {
                     sendMessage({ status: 'complete', output })
-                    db.emit('toRouter', { action: 'toDatabase', data: output })
+                    if (!(await isUIOpen())) {
+                        db.emit('toRouter', {
+                            action: 'toDatabase',
+                            data: output
+                        })
+                    }
                 }
                 break
             }
