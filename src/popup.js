@@ -70,7 +70,7 @@ inputElement.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter') return
 
     const message = {
-        action: 'toDatabase',
+        action: 'fromUser',
         data: event.target.value
     }
 

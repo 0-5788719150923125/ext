@@ -122,9 +122,15 @@ if (!chrome.offscreen) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'toDatabase') {
+    if (message.action === 'fromUser') {
         db.emit('toRouter', message)
-    } else db.emit('toRouter', message.data)
+    } else if (!chrome.offscreen) {
+        if (message.action === 'toDatabase') {
+            db.emit('toRouter', message)
+        } else {
+            db.emit('toRouter', message.data)
+        }
+    }
 })
 
 db.on('toRouter', (event) => {
@@ -135,6 +141,7 @@ const messageCache = []
 
 function router(detail) {
     switch (detail?.action) {
+        case 'fromUser':
         case 'toDatabase':
             if (detail.data.length < 3) break
             if (messageCache.includes(detail.data)) return
