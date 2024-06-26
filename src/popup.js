@@ -16,7 +16,7 @@ function updateTrainLink(word) {
 
 // Generic functions used to update the UI
 function updateOutputUI(string) {
-    outputElement.innerText = string
+    outputElement.textContent = string
     outputElement.style.color = 'black'
 }
 
@@ -29,12 +29,12 @@ function updateTopicUI(string) {
     if (string.length > 60) {
         string = string.slice(0, 60) + '...'
     }
-    topicElement.innerText = string.toUpperCase()
+    topicElement.textContent = string.toUpperCase()
     updateTrainLink(string.slice(0, 256))
 }
 
 function updateErrorUI(string) {
-    outputElement.innerText = string
+    outputElement.textContent = string
     outputElement.style.color = 'red'
 }
 
