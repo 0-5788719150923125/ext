@@ -131,12 +131,19 @@ db.on('toRouter', (event) => {
     router(event.detail)
 })
 
+const messageCache = []
+
 function router(detail) {
     switch (detail?.action) {
         case 'toDatabase':
             if (detail.data.length < 3) break
+            if (messageCache.includes(detail.data)) return
+            messageCache.push(detail.data)
             gun.send(detail.data)
             console.log(detail.data)
+            while (messageCache.length > 50) {
+                messageCache.shift()
+            }
             break
         case 'toLogger':
             console.log(detail.data)

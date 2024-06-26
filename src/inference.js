@@ -71,6 +71,7 @@ const classify = async (context) => {
         return choice
     } catch (err) {
         console.error(err)
+        return ''
     }
 }
 
