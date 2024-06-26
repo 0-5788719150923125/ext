@@ -121,6 +121,12 @@ if (!chrome.offscreen) {
     }
 }
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'toDatabase') {
+        db.emit('toRouter', message)
+    } else db.emit('toRouter', message.data)
+})
+
 db.on('toRouter', (event) => {
     router(event.detail)
 })
@@ -201,7 +207,8 @@ async function submitInferenceRequest(prompt, options) {
     }
 
     if (!(await isUIOpen())) {
-        await doInference(args)
+        const returnRouter = true
+        await doInference(args, returnRouter)
     } else if (chrome.offscreen) {
         await sendMessageToOffscreen(args)
     } else {

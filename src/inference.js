@@ -84,7 +84,7 @@ function sendMessage(data) {
     }
 }
 
-export async function doInference(data) {
+export async function doInference(data, returnRouter = false) {
     try {
         const { action, prompt, generatorOptions } = data
 
@@ -149,7 +149,7 @@ export async function doInference(data) {
             if (shouldReturn) {
                 if (output.length > 2) {
                     sendMessage({ status: 'complete', output })
-                    if (!(await isUIOpen())) {
+                    if (returnRouter) {
                         db.emit('toRouter', {
                             action: 'toDatabase',
                             data: output

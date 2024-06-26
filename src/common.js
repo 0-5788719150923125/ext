@@ -16,7 +16,7 @@ export function randomBetween(min, max) {
 }
 
 export async function isUIOpen() {
-    if (typeof chrome === 'undefined') false
+    // if (typeof chrome === 'undefined') return false
     const manifest = chrome.runtime.getManifest()
 
     if (manifest.manifest_version > 2) {
