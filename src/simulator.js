@@ -132,7 +132,7 @@ function resizeCanvas() {
 
 function drawAtom(x, y, z, mass) {
     const scaledRadius =
-        (baseRadius * Math.sqrt(mass)) / (1 + z * scalingFactor)
+        (baseRadius * Math.sqrt(mass)) / (1 + Math.abs(z) * scalingFactor)
 
     const intensity = 0.4
     const cycleSpeed = 0.23
@@ -179,6 +179,7 @@ function drawAtoms() {
     Object.entries(heads).forEach(([i, atom]) => {
         let repulsionX = 0
         let repulsionY = 0
+        let repulsionZ = 0
 
         Object.entries(heads).forEach(([j, otherAtom]) => {
             if (i !== j) {
@@ -200,13 +201,20 @@ function drawAtoms() {
                     const repulsionForce = force * repulsionStrength
                     repulsionX += (repulsionForce * distanceX) / distance
                     repulsionY += (repulsionForce * distanceY) / distance
+                    repulsionZ += (repulsionForce * distanceZ) / distance
                 }
             }
         })
 
-        const moveResult = applyPerturbations(atom, repulsionX, repulsionY)
+        const moveResult = applyPerturbations(
+            atom,
+            repulsionX,
+            repulsionY,
+            repulsionZ
+        )
         atom.x = moveResult.x
         atom.y = moveResult.y
+        atom.z = moveResult.z
 
         atom.x = Math.max(
             baseRadius * Math.sqrt(atom.mass),
@@ -225,7 +233,8 @@ function drawAtoms() {
 
         if (
             Math.abs(atom.x - atom.targetX) <= tolerance &&
-            Math.abs(atom.y - atom.targetY) <= tolerance
+            Math.abs(atom.y - atom.targetY) <= tolerance &&
+            Math.abs(atom.z - atom.targetZ) <= tolerance
         ) {
             atom.targetX =
                 Math.random() *
@@ -235,6 +244,7 @@ function drawAtoms() {
                 Math.random() *
                     (canvas.height - baseRadius * 2 * Math.sqrt(atom.mass)) +
                 baseRadius * Math.sqrt(atom.mass)
+            atom.targetZ = Math.random() * 2 - 1 // Set a new random targetZ value
         }
     })
 }
@@ -261,15 +271,16 @@ function limitSpeed(speed, maxSpeed) {
     )
 }
 
-function applyPerturbations(atom, repulsionX, repulsionY) {
+function applyPerturbations(atom, repulsionX, repulsionY, repulsionZ) {
     const dx = (atom.targetX - atom.x) * damping + repulsionX
     const dy = (atom.targetY - atom.y) * damping + repulsionY
+    const dz = (atom.targetZ - atom.z) * damping + repulsionZ
 
     // Incorporate Z-axis into motion strength
     const zFactor = 1 + Math.abs(atom.z) * 0.5
 
-    const distance = Math.sqrt(dx * dx + dy * dy)
-    const threshold = 5 * zFactor
+    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz) // Include z-axis in distance calculation
+    const threshold = 5
 
     // Generate a random curveFactor for each atom
     const curveFactor = Math.random() * 0.4 - 0.2 // Random value between -0.2 and 0.2
@@ -277,6 +288,7 @@ function applyPerturbations(atom, repulsionX, repulsionY) {
     // Apply the random curveFactor to the trajectory
     const curveX = -dy * curveFactor * silu(distance / 100)
     const curveY = dx * curveFactor * silu(distance / 100)
+    const curveZ = Math.random() * 0.4 - 0.2 // Add a random curve factor for the z-axis
 
     // Calculate the force factor based on atom's mass
     const forceFactor = Math.exp(-atom.mass / maxMass)
@@ -288,16 +300,21 @@ function applyPerturbations(atom, repulsionX, repulsionY) {
             (dx + curveX) * elasticFactor * elasticDamping * forceFactor
         const elasticDy =
             (dy + curveY) * elasticFactor * elasticDamping * forceFactor
+        const elasticDz =
+            (dz + curveZ) * elasticFactor * elasticDamping * forceFactor // Add elastic force for z-axis
 
         atom.vx = (atom.vx || 0) * 0.9 + elasticDx
         atom.vy = (atom.vy || 0) * 0.9 + elasticDy
+        atom.vz = (atom.vz || 0) * 0.9 + elasticDz // Update atom.vz based on elastic force
     } else {
         const decayFactor = 1 / (distance * distance)
         const decayedDx = (dx + curveX) * forceFactor * decayFactor
         const decayedDy = (dy + curveY) * forceFactor * decayFactor
+        const decayedDz = (dz + curveZ) * forceFactor * decayFactor // Add decayed force for z-axis
 
         atom.vx = decayedDx
         atom.vy = decayedDy
+        atom.vz = decayedDz // Update atom.vz based on decayed force
     }
 
     // Apply velocity damping and limiting
@@ -313,15 +330,22 @@ function applyPerturbations(atom, repulsionX, repulsionY) {
         -maxVelocity,
         Math.min(atom.vy * velocityDamping, maxVelocity)
     )
+    atom.vz = Math.max(
+        -maxVelocity,
+        Math.min(atom.vz * velocityDamping, maxVelocity)
+    ) // Apply velocity damping and limiting to atom.vz
 
     // Apply speed limit
-    const speed = Math.sqrt(atom.vx * atom.vx + atom.vy * atom.vy)
+    const speed = Math.sqrt(
+        atom.vx * atom.vx + atom.vy * atom.vy + atom.vz * atom.vz
+    ) // Include atom.vz in speed calculation
     const limitedSpeed = limitSpeed(speed, maxSpeed)
     const speedFactor = limitedSpeed / speed
 
     return {
         x: atom.x + atom.vx * speedFactor,
-        y: atom.y + atom.vy * speedFactor
+        y: atom.y + atom.vy * speedFactor,
+        z: atom.z + atom.vz * speedFactor
     }
 }
 
@@ -444,14 +468,15 @@ function cycleAtoms() {
                 z: startZ,
                 targetX: startX,
                 targetY: startY,
-                mass: 1 // Initialize with base mass
+                targetZ: startZ,
+                mass: 1
             }
         }
     } else {
         Object.entries(heads).forEach(([i, value]) => {
             const targetX = heads[i].x + Math.random() * 100 - 50
             const targetY = heads[i].y + Math.random() * 100 - 50
-            const targetZ = heads[i].z + Math.random() * 2 - 1 // Adjust the range for more noticeable z movement
+            const targetZ = heads[i].z + Math.random() * 2 - 1
 
             atoms[i] = {
                 x: heads[i].x,
@@ -459,7 +484,8 @@ function cycleAtoms() {
                 z: targetZ,
                 targetX,
                 targetY,
-                mass: heads[i].mass // Carry over the mass
+                targetZ,
+                mass: heads[i].mass
             }
         })
     }

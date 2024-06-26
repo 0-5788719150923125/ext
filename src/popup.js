@@ -111,7 +111,7 @@ chrome.storage.local.get('frequency', (data) => {
 chrome.storage.local.get('model', (data) => {
     const options = [
         { value: 'Xenova/LaMini-Neo-125M', label: 'EleutherAI/GPT-Neo-125M' },
-        // { value: 'Xenova/OpenELM-270M-Instruct', label: 'Apple/OpenELM-270M' }, // unsupported?
+        // { value: 'Xenova/OpenELM-270M-Instruct', label: 'Apple/OpenELM-270M' }, // unsupported
         { value: 'Xenova/opt-350m', label: 'Meta/opt-350m' },
         { value: 'Xenova/pythia-70m', label: 'Xenova/pythia-70m' },
         { value: 'Xenova/gpt2', label: 'OpenAI/gpt2' },
