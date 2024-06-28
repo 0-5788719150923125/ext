@@ -5,6 +5,7 @@ import { doInference } from './inference.js'
 import {
     eventHandler,
     getSavedOption,
+    hasLongWord,
     isUIOpen,
     sendToForeground
 } from './common.js'
@@ -43,6 +44,7 @@ let gun = new Gun()
 gun.subscribe('trade').on(async (node) => {
     if (['null', 'undefined'].includes(typeof node)) return
     const message = JSON.parse(node).message
+    if (hasLongWord(message, 20)) return
     context.add(message)
     sendToForeground('toOutputField', message)
 })

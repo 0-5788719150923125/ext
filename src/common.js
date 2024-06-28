@@ -68,7 +68,10 @@ export async function getSavedOption(option) {
 }
 
 export function eventHandler(event) {
-    if (event.data.action === 'toTopic') {
+    if (event.data.action === 'reset') {
+        sendToForeground('toInputField', '')
+        sendToForeground('floatLeft')
+    } else if (event.data.action === 'toTopic') {
         sendToForeground('toTopic', event.data.answer)
     } else if (event.data.status === 'partial') {
         sendToForeground('floatRight')
@@ -104,4 +107,12 @@ export function eventHandler(event) {
     //     sendToForeground('toInputField', '')
     //     sendToForeground('floatLeft')
     // }
+}
+
+export function hasLongWord(str, len = 50) {
+    // Split the string into an array of words
+    const words = str.split(' ')
+
+    // Check if any word in the array has a length greater than 50
+    return words.some((word) => word.length > len)
 }
