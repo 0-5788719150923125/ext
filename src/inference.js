@@ -1,12 +1,6 @@
 import { pipeline, env } from '@xenova/transformers'
 import db from './db.js'
-import {
-    delay,
-    eventHandler,
-    hasLongWord,
-    isUIOpen,
-    randomBetween
-} from './common.js'
+import { delay, eventHandler, randomBetween } from './common.js'
 
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
@@ -156,8 +150,6 @@ export async function doInference(data, returnRouter = false) {
                 input: output
             })
             if (shouldReturn) {
-                if (hasLongWord(output, 20))
-                    return sendMessage({ action: 'reset' })
                 sendMessage({ status: 'complete', output })
                 if (returnRouter) {
                     db.emit('toRouter', {
@@ -165,6 +157,7 @@ export async function doInference(data, returnRouter = false) {
                         data: output
                     })
                 }
+                sendMessage({ action: 'reset' })
                 break
             }
         }

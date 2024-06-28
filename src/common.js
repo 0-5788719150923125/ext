@@ -103,10 +103,6 @@ export function eventHandler(event) {
     ) {
         sendToBackground('toUnclassified', event.data)
     }
-    // else {
-    //     sendToForeground('toInputField', '')
-    //     sendToForeground('floatLeft')
-    // }
 }
 
 export function hasLongWord(str, len = 50) {
