@@ -57,8 +57,10 @@ const classify = async (context) => {
             'Xenova/distilbert-base-uncased'
         )
 
+        const maxLength = 1024
+        let sliced = context.slice(-maxLength)
         const outputs = await classifier(
-            context + 'The main topic of this conversation is [MASK].',
+            sliced + 'The main topic of this conversation is [MASK].',
             {
                 topk: 2
             }
@@ -138,24 +140,22 @@ export async function doInference(data, returnRouter = false) {
                 shouldReturn = true
                 output += outputChars[i].char
                 if (!outputChars[i].delivered) {
-                    sendMessage({
-                        status: 'partial',
-                        input: output
-                    })
                     outputChars[i].delivered = true
                     shouldReturn = false
                     break
                 }
             }
+            sendMessage({
+                status: 'partial',
+                input: output
+            })
             if (shouldReturn) {
-                if (output.length > 2) {
-                    sendMessage({ status: 'complete', output })
-                    if (returnRouter) {
-                        db.emit('toRouter', {
-                            action: 'toDatabase',
-                            data: output
-                        })
-                    }
+                sendMessage({ status: 'complete', output })
+                if (returnRouter) {
+                    db.emit('toRouter', {
+                        action: 'toDatabase',
+                        data: output
+                    })
                 }
                 break
             }
@@ -176,10 +176,15 @@ function cleanPrediction(output, prompt = '') {
         clean = clean.slice(0, trailingNewlines)
     }
 
-    if ((clean.split(`"`).length - 1) % 2 !== 0) {
-        if (clean.endsWith(`"`)) {
-            clean = clean.slice(0, -1)
-        }
+    // if ((clean.split(`"`).length - 1) % 2 !== 0) {
+    //     if (clean.endsWith(`"`)) {
+    //         clean = clean.slice(0, -1)
+    //     }
+    // }
+
+    let pilcrowIndex = clean.lastIndexOf('¶')
+    if (pilcrowIndex >= 0) {
+        clean = clean.slice(pilcrowIndex).trim()
     }
 
     while (
@@ -188,11 +193,6 @@ function cleanPrediction(output, prompt = '') {
         clean.startsWith('_')
     ) {
         clean = clean.slice(1)
-    }
-
-    let pilcrowIndex = clean.indexOf('¶')
-    if (pilcrowIndex >= 0) {
-        clean = clean.slice(0, pilcrowIndex).trim()
     }
 
     return clean

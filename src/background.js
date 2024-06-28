@@ -202,11 +202,11 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
             do_sample: true,
             temperature: currentTemperature,
             max_new_tokens: 60,
-            repetition_penalty: 1.1,
+            repetition_penalty: 1.2,
             no_repeat_ngram_size: 7,
             top_k: 4,
             penalty_alpha: 0.6,
-            eta_cutoff: 0.0003,
+            eta_cutoff: 0.002,
             renormalize_logits: true,
             frequency: currentFrequency
         })

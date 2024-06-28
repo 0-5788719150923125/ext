@@ -77,6 +77,7 @@ inputElement.addEventListener('keydown', (event) => {
     chrome.runtime.sendMessage(message)
     updateOutputUI(message.data)
     event.target.value = ''
+    event.target.blur()
 })
 
 // Pin the popup window
@@ -118,6 +119,10 @@ chrome.storage.local.get('model', (data) => {
         {
             value: 'Xenova/LaMini-Cerebras-256M',
             label: 'LaMini/Cerebras-256M'
+        },
+        {
+            value: 'Xenova/Qwen1.5-0.5B-Chat',
+            label: 'Alibaba/Qwen1.5-0.5B'
         }
     ]
 

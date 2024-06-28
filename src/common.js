@@ -99,8 +99,9 @@ export function eventHandler(event) {
         ].includes(event.data.status)
     ) {
         sendToBackground('toUnclassified', event.data)
-    } else {
-        sendToForeground('toInputField', '')
-        sendToForeground('floatLeft')
     }
+    // else {
+    //     sendToForeground('toInputField', '')
+    //     sendToForeground('floatLeft')
+    // }
 }
