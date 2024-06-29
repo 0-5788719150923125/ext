@@ -72,7 +72,7 @@ export function eventHandler(event) {
         sendToForeground('toInputField', '')
         sendToForeground('floatLeft')
     } else if (event.data.action === 'toTopic') {
-        sendToForeground('toTopic', event.data.answer)
+        sendToForeground('toTopic', event.data.label)
     } else if (event.data.status === 'partial') {
         sendToForeground('floatRight')
         sendToForeground('toInputField', event.data.input + '//:dst')

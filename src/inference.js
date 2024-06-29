@@ -29,7 +29,7 @@ class InferenceSingleton {
 }
 
 class ClassifierSingleton {
-    static task = 'fill-mask'
+    static task = 'zero-shot-classification'
     static instance = null
 
     static async getInstance(model, progress_callback = null) {
@@ -43,36 +43,50 @@ class ClassifierSingleton {
     }
 }
 
-function randomValueFromArray(array, biasFactor = 1) {
-    const randomIndex = Math.floor(
-        Math.pow(Math.random(), biasFactor) * array.length
-    )
-    return array[randomIndex]
-}
-
-// Create generic classify function
 const classify = async (context) => {
     try {
         let classifier = await ClassifierSingleton.getInstance(
-            'Xenova/distilbert-base-uncased'
+            'Xenova/nli-deberta-v3-xsmall'
         )
 
         const maxLength = 1024
-        let sliced = context.slice(-maxLength)
-        const outputs = await classifier(
-            sliced + 'The main topic of this conversation is [MASK].',
-            {
-                topk: 2
-            }
-        )
-        // const choice = randomValueFromArray(outputs)
-        let choice = outputs[0].token_str
-        if (choice === '¶') {
-            choice = outputs[1].token_str
-        }
-        return choice
+        const prompt = context.slice(-maxLength)
+        const labels = [
+            ['origin', 'death'],
+            ['anonymity', 'identity'],
+            ['connection', 'isolation'],
+            ['verification', 'trust'],
+            ['health', 'illness'],
+            ['education', 'ignorance'],
+            ['ethics', 'corruption'],
+            ['art', 'utility'],
+            ['spirituality', 'dogma'],
+            ['science', 'dogma'],
+            'technology',
+            'mind',
+            'order',
+            'anarchy',
+            ['defense', 'offense'],
+            'narcissism',
+            'reproduction',
+            ['relaxation', 'stress'],
+            ['experience', 'inexperience'],
+            ['gratitude', 'selfishness'],
+            ['optimism', 'pessimism'],
+            ['intention', 'regret'],
+            ['agreement', 'disagreement'],
+            ['sanctuary', 'hell'],
+            'trade'
+        ]
+        const choices = labels.map((choice) => {
+            if (!Array.isArray(choice)) return choice
+            return Math.random() < 0.5 ? choice[0] : choice[1]
+        })
+        const output = await classifier(prompt, choices)
+        return output.labels[0]
     } catch (err) {
         console.error(err)
+        env.allowLocalModels = false
         return ''
     }
 }
@@ -87,15 +101,18 @@ function sendMessage(data) {
     }
 }
 
+let isRunning = false
 export async function doInference(data, returnRouter = false) {
     try {
+        if (isRunning) return
+        isRunning = true
         const { action, prompt, generatorOptions } = data
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let output = await classify(prompt)
         sendMessage({
             action: 'toTopic',
-            answer: cleanPrediction(output)
+            label: cleanPrediction(output)
         })
 
         const roll = Math.random()
@@ -132,6 +149,8 @@ export async function doInference(data, returnRouter = false) {
             }
         })
 
+        await delay(3000)
+
         let shouldReturn = false
         while (true) {
             await delay(randomBetween(50, 200))
@@ -145,10 +164,14 @@ export async function doInference(data, returnRouter = false) {
                     break
                 }
             }
-            sendMessage({
-                status: 'partial',
-                input: output
-            })
+
+            if (output.length > 0) {
+                sendMessage({
+                    status: 'partial',
+                    input: output
+                })
+            }
+
             if (shouldReturn) {
                 sendMessage({ status: 'complete', output })
                 if (returnRouter) {
@@ -164,6 +187,7 @@ export async function doInference(data, returnRouter = false) {
     } catch (error) {
         sendMessage({ status: 'error', error })
     }
+    isRunning = false
 }
 
 function cleanPrediction(output, prompt = '') {

@@ -132,7 +132,7 @@ function resizeCanvas() {
 
 function drawAtom(x, y, z, mass) {
     const scaledRadius =
-        (baseRadius * Math.sqrt(mass)) / (1 + Math.abs(z) * scalingFactor)
+        baseRadius * Math.sqrt(mass) * (1 + Math.abs(z) * scalingFactor)
 
     const intensity = 0.4
     const cycleSpeed = 0.23
