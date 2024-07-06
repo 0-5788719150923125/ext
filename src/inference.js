@@ -102,10 +102,12 @@ function sendMessage(data) {
 }
 
 let isRunning = false
+let isInferencing = false
 export async function doInference(data, returnRouter = false) {
     try {
         if (isRunning) return
         isRunning = true
+        isInferencing = true
         const { action, prompt, generatorOptions } = data
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
@@ -116,11 +118,18 @@ export async function doInference(data, returnRouter = false) {
         })
 
         const roll = Math.random()
-        if (roll >= generatorOptions.frequency) return
+        if (roll >= generatorOptions.frequency) {
+            isRunning = false
+            isInferencing = false
+            return
+        }
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let generator = await InferenceSingleton.getInstance(
-            generatorOptions?.model
+            generatorOptions?.model,
+            (data) => {
+                if (data.status === 'done') isInferencing = false
+            }
         )
 
         const outputChars = []
@@ -149,8 +158,6 @@ export async function doInference(data, returnRouter = false) {
             }
         })
 
-        await delay(3000)
-
         let shouldReturn = false
         while (true) {
             await delay(randomBetween(50, 200))
@@ -170,6 +177,8 @@ export async function doInference(data, returnRouter = false) {
                     status: 'partial',
                     input: output
                 })
+            } else if (!isInferencing) {
+                shouldReturn = true
             }
 
             if (shouldReturn) {
@@ -188,6 +197,7 @@ export async function doInference(data, returnRouter = false) {
         sendMessage({ status: 'error', error })
     }
     isRunning = false
+    isInferencing = false
 }
 
 function cleanPrediction(output, prompt = '') {
