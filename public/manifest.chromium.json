@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Wyrm",
+  "name": "Domino",
   "description": "Feeding Machines",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "permissions": ["alarms", "offscreen", "storage", "unlimitedStorage"],
   "background": {
     "service_worker": "background.js",
@@ -15,7 +15,7 @@
       "24": "static/icon.png",
       "32": "static/icon.png"
     },
-    "default_title": "Wyrm",
+    "default_title": "Domino",
     "default_popup": "popup.html"
   },
   "content_security_policy": {

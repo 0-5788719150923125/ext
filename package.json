@@ -1,7 +1,7 @@
 {
-  "name": "wyrm",
-  "version": "0.0.8",
-  "description": "Wyrm | Feeding Machines",
+  "name": "domino",
+  "version": "0.0.9",
+  "description": "Domino | Feeding Machines",
   "scripts": {
     "version": "echo $npm_package_version",
     "build:chromium": "webpack --mode production --node-env chromium",
