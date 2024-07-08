@@ -115,7 +115,7 @@ async function sendMessageToOffscreen(data) {
 // Create the web worker directly (Firefox, Manifest v2)
 let inferenceWorker
 if (!chrome.offscreen) {
-    inferenceWorker = new Worker('worker.js', {
+    inferenceWorker = new Worker(chrome.runtime.getURL('worker.js'), {
         type: 'module'
     })
     inferenceWorker.onmessage = async (event) => {

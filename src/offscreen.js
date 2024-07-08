@@ -5,7 +5,9 @@
 import { eventHandler } from './common.js'
 
 // Create the web worker
-const inferenceWorker = new Worker('worker.js', { type: 'module' })
+const inferenceWorker = new Worker(chrome.runtime.getURL('worker.js'), {
+    type: 'module'
+})
 
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {

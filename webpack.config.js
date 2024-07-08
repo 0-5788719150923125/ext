@@ -10,6 +10,9 @@ const browser = process.env.NODE_ENV || 'chromium'
 const config = {
     mode: 'development',
     devtool: 'source-map',
+    experiments: {
+        asyncWebAssembly: true
+    },
     entry: {
         background: './src/background.js',
         popup: './src/popup.js',
@@ -44,6 +47,11 @@ const config = {
                 {
                     from: 'src/style.css',
                     to: 'style.css'
+                },
+                {
+                    from: '*.wasm',
+                    context: 'node_modules/@xenova/transformers/dist',
+                    to: './ort'
                 }
             ]
         })

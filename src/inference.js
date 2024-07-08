@@ -6,6 +6,7 @@ import { delay, eventHandler, randomBetween } from './common.js'
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
 env.backends.onnx.wasm.numThreads = 1
 env.allowLocalModels = true
+env.backends.onnx.wasm.wasmPaths = '/ort/'
 
 // Proxy the WASM backend to prevent the UI from freezing
 // env.backends.onnx.wasm.proxy = true
@@ -74,7 +75,7 @@ const classify = async (context) => {
             ['gratitude', 'selfishness'],
             ['optimism', 'pessimism'],
             ['intention', 'regret'],
-            ['agreement', 'disagreement'],
+            ['agreement', 'debate'],
             ['sanctuary', 'hell'],
             'trade'
         ]
