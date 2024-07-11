@@ -3,7 +3,7 @@
 rm -rf dist
 mkdir -p dist
 
-(zip -r ./dist/source.${VERSION}.zip . -x "*.git*" "*.git/*" "node_modules/*")
+(zip -r ./dist/source.${VERSION}.zip . -x "*.git*" "*.git/*" "node_modules/*" "models/*")
 
 npm run build:chromium 
 npm run build:firefox

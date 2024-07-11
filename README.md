@@ -37,6 +37,7 @@ To fetch a model, `cd` into the `models/<model>` directory, then run:
 
 ```
 git lfs fetch
+git lfs pull
 ```
 
 Else, models will not be downloaded. Chrome's Manifest v3 policy requires that all code remains local to the extension (we cannot fetch remote models from external sources).
