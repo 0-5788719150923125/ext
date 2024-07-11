@@ -5,8 +5,9 @@ import { delay, eventHandler, randomBetween } from './common.js'
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
 env.backends.onnx.wasm.numThreads = 1
-env.allowLocalModels = false
 env.backends.onnx.wasm.wasmPaths = '/ort/'
+env.allowRemoteModels = false
+env.allowLocalModels = true
 env.localModelPath = '/models/'
 
 // Proxy the WASM backend to prevent the UI from freezing
@@ -88,7 +89,7 @@ const classify = async (context) => {
         return output.labels[0]
     } catch (err) {
         console.error(err)
-        env.allowLocalModels = false
+        // env.allowLocalModels = false
         return ''
     }
 }

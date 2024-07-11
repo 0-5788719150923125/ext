@@ -4,3 +4,9 @@
 [submodule "models/Xenova/nli-deberta-v3-xsmall"]
 	path = models/Xenova/nli-deberta-v3-xsmall
 	url = https://huggingface.co/Xenova/nli-deberta-v3-xsmall
+[submodule "LaMini-Cerebras-256M"]
+	path = models/Xenova/LaMini-Cerebras-256M
+	url = https://huggingface.co/Xenova/LaMini-Cerebras-256M
+[submodule "models/Xenova/pythia-70m-deduped"]
+	path = models/Xenova/pythia-70m-deduped
+	url = https://huggingface.co/Xenova/pythia-70m-deduped

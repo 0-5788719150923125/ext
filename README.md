@@ -31,6 +31,16 @@ cd ./dist/firefox
 cd ./dist/chromium
 ```
 
+## MODELS
+
+To fetch a model, `cd` into the `models/<model>` directory, then run:
+
+```
+git lfs fetch
+```
+
+Else, models will not be downloaded. Chrome's Manifest v3 policy requires that all code remains local to the extension (we cannot fetch remote models from external sources).
+
 ## INCENTIVES
 
 The $LEEP Token is calculated by the SleepTokenizer function. It combines several factors to produce a single score between 0 and 1. Let's break down each component:
