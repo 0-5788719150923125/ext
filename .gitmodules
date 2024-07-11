@@ -1,0 +1,6 @@
+[submodule "models/Xenova/LaMini-Neo-125M"]
+	path = models/Xenova/LaMini-Neo-125M
+	url = https://huggingface.co/Xenova/LaMini-Neo-125M
+[submodule "models/Xenova/nli-deberta-v3-xsmall"]
+	path = models/Xenova/nli-deberta-v3-xsmall
+	url = https://huggingface.co/Xenova/nli-deberta-v3-xsmall
