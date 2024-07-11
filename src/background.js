@@ -200,6 +200,8 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
             currentFrequency
         )
 
+        const isChromium = chrome.offscreen ? true : false
+
         await submitInferenceRequest(context.get(), {
             model,
             do_sample: true,
@@ -211,7 +213,8 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
             penalty_alpha: 0.6,
             eta_cutoff: 0.002,
             renormalize_logits: true,
-            frequency: currentFrequency
+            frequency: currentFrequency,
+            isChromium
         })
     })
 })

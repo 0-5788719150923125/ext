@@ -6,8 +6,6 @@ import { delay, eventHandler, randomBetween } from './common.js'
 // See https://github.com/microsoft/onnxruntime/issues/14445 for more information.
 env.backends.onnx.wasm.numThreads = 1
 env.backends.onnx.wasm.wasmPaths = '/ort/'
-env.allowRemoteModels = false
-env.allowLocalModels = true
 env.localModelPath = '/models/'
 
 // Proxy the WASM backend to prevent the UI from freezing
@@ -112,6 +110,14 @@ export async function doInference(data, returnRouter = false) {
         isRunning = true
         isInferencing = true
         const { action, prompt, generatorOptions } = data
+
+        if (generatorOptions.isChromium) {
+            env.allowRemoteModels = false
+            env.allowLocalModels = true
+        } else {
+            env.allowRemoteModels = true
+            env.allowLocalModels = false
+        }
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let output = await classify(prompt)

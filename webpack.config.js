@@ -72,11 +72,6 @@ const config = {
                     from: '**/**/decoder_model.onnx',
                     context: 'models',
                     to: './models'
-                },
-                {
-                    from: '**/**/*merged_quantized.onnx',
-                    context: 'models',
-                    to: './models'
                 }
             ]
         })
