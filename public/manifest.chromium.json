@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Domino",
   "description": "Feeding Machines",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "permissions": ["alarms", "offscreen", "storage", "unlimitedStorage"],
   "background": {
     "service_worker": "background.js",

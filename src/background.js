@@ -9,7 +9,6 @@ import {
     isUIOpen,
     sendToForeground
 } from './common.js'
-import { quantize_embeddings } from '@xenova/transformers'
 
 class ContextHandler {
     constructor() {
