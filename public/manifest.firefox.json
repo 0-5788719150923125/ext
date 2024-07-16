@@ -19,5 +19,5 @@
     }
   },
   "permissions": ["alarms", "storage", "unlimitedStorage"],
-  "content_security_policy": "default-src 'self'; worker-src 'self' blob; style-src 'self'; connect-src *; media-src *; script-src 'self' 'wasm-unsafe-eval' blob"
+  "content_security_policy": "default-src 'self'; worker-src 'self'; style-src 'self'; connect-src *; media-src *; script-src 'self' 'wasm-unsafe-eval'"
 }

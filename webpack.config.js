@@ -53,26 +53,6 @@ const config = {
                     context: 'node_modules/@xenova/transformers/dist',
                     to: './ort'
                 }
-                // {
-                //     from: '**/**/*.json',
-                //     context: 'models',
-                //     to: './models'
-                // },
-                // {
-                //     from: '**/**/*.model',
-                //     context: 'models',
-                //     to: './models'
-                // },
-                // {
-                //     from: '**/**/model.onnx',
-                //     context: 'models',
-                //     to: './models'
-                // },
-                // {
-                //     from: '**/**/decoder_model.onnx',
-                //     context: 'models',
-                //     to: './models'
-                // }
             ]
         })
     ]
