@@ -1,6 +1,6 @@
 // background.js - Handles requests from the UI, runs the model, then sends back a response
 import Gun from './book.js'
-import db from './db.js'
+import ev from './events.js'
 import { doInference } from './inference.js'
 import {
     eventHandler,
@@ -125,17 +125,17 @@ if (!chrome.offscreen) {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'fromUser') {
-        db.emit('toRouter', message)
+        ev.emit('toRouter', message)
     } else if (!chrome.offscreen) {
         if (message.action === 'toDatabase') {
-            db.emit('toRouter', message)
+            ev.emit('toRouter', message)
         } else {
-            db.emit('toRouter', message.data)
+            ev.emit('toRouter', message.data)
         }
     }
 })
 
-db.on('toRouter', (event) => {
+ev.on('toRouter', (event) => {
     router(event.detail)
 })
 

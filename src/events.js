@@ -1,4 +1,4 @@
-class DatabaseHandler {
+class EventHandler {
     constructor() {
         this.eventTarget = new EventTarget()
     }
@@ -17,4 +17,4 @@ class DatabaseHandler {
     }
 }
 
-export default new DatabaseHandler()
+export default new EventHandler()

@@ -1,5 +1,5 @@
 import { pipeline, env } from '@xenova/transformers'
-import db from './db.js'
+import ev from './events.js'
 import { delay, eventHandler, randomBetween } from './common.js'
 
 // Due to a bug in onnxruntime-web, we must disable multithreading for now.
@@ -7,11 +7,7 @@ import { delay, eventHandler, randomBetween } from './common.js'
 env.backends.onnx.wasm.numThreads = 1
 env.backends.onnx.wasm.wasmPaths = '/ort/'
 env.allowRemoteModels = true
-env.allowLocalModels = true
-env.localModelPath = '/models/'
-
-// Proxy the WASM backend to prevent the UI from freezing
-// env.backends.onnx.wasm.proxy = true
+env.allowLocalModels = false
 
 // Use the Singleton pattern to enable lazy construction of the pipeline.
 class InferenceSingleton {
@@ -113,13 +109,9 @@ export async function doInference(data, returnRouter = false) {
         isInferencing = true
         const { action, prompt, generatorOptions } = data
 
-        // if (generatorOptions.isChromium) {
-        //     env.allowRemoteModels = false
-        //     env.allowLocalModels = true
-        // } else {
-        //     env.allowRemoteModels = true
-        //     env.allowLocalModels = false
-        // }
+        if (generatorOptions.isChromium) {
+            env.allowLocalModels = true
+        }
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
         let output = await classify(prompt)
@@ -195,7 +187,7 @@ export async function doInference(data, returnRouter = false) {
             if (shouldReturn) {
                 sendMessage({ status: 'complete', output })
                 if (returnRouter) {
-                    db.emit('toRouter', {
+                    ev.emit('toRouter', {
                         action: 'toDatabase',
                         data: output
                     })

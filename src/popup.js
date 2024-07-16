@@ -99,6 +99,48 @@ persistButton.addEventListener('click', () => {
     })
 })
 
+async function clearPageCache() {
+    try {
+        const cacheNames = await caches.keys()
+        await Promise.all(cacheNames.map((name) => caches.delete(name)))
+        console.log('Cache storage cleared successfully')
+    } catch (error) {
+        console.error('Error clearing cache storage:', error)
+    }
+}
+
+function clearExtensionStorage() {
+    // Clear local storage
+    chrome.storage.local.clear(() => {
+        console.log('Local storage cleared')
+    })
+
+    // Clear sync storage
+    chrome.storage.sync.clear(() => {
+        console.log('Sync storage cleared')
+    })
+
+    // Clear managed storage (if available)
+    if (chrome.storage.managed) {
+        chrome.storage.managed.clear(() => {
+            console.log('Managed storage cleared')
+        })
+    }
+}
+
+// Pin the popup window
+const nuclearButton = document.getElementById('nuke')
+nuclearButton.addEventListener('click', async () => {
+    localStorage.clear()
+    sessionStorage.clear()
+    for (const db of ['gun']) {
+        window.indexedDB.deleteDatabase(db)
+    }
+    await clearPageCache()
+    clearExtensionStorage()
+    window.location.reload()
+})
+
 // Retrieve the frequency option from storage
 chrome.storage.local.get('frequency', (data) => {
     const options = [
