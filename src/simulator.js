@@ -92,7 +92,7 @@ function updateTemperature(newTemp) {
 let heads = {}
 let tails = {}
 
-const canvas = document.getElementById('slate')
+const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
 canvas.classList.add('overlay')
 
