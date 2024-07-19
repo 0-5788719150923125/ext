@@ -105,6 +105,9 @@ export function eventHandler(event) {
     }
 }
 
+// A degenerative model will very often create repeating strings
+// like 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'. This simply
+// discards messages like that.
 export function hasLongWord(str, len = 50) {
     // Split the string into an array of words
     const words = str.split(' ')

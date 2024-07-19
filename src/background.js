@@ -176,11 +176,16 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     chrome.alarms.onAlarm.addListener(async (alarm) => {
         if (alarm.name !== 'doInference') return
 
+        let currentModel = 'Xenova/LaMini-Neo-125M'
         let currentTemperature = 0.5
         let currentFrequency = 0.1
         const model = await getSavedOption('model')
         const temperature = await getSavedOption('temperature')
         const frequency = await getSavedOption('frequency')
+
+        if (model) {
+            currentModel = model
+        }
 
         if (temperature) {
             currentTemperature = Number(temperature)
@@ -192,7 +197,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
 
         console.log(
             'model:',
-            model,
+            currentModel,
             'temperature:',
             currentTemperature,
             'frequency:',
@@ -202,7 +207,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
         const isChromium = chrome.offscreen ? true : false
 
         await submitInferenceRequest(context.get(), {
-            model,
+            model: currentModel,
             do_sample: true,
             temperature: currentTemperature,
             max_new_tokens: 60,

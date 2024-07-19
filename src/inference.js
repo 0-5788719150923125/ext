@@ -110,6 +110,7 @@ export async function doInference(data, returnRouter = false) {
         const { action, prompt, generatorOptions } = data
 
         if (generatorOptions.isChromium) {
+            // This doesn't work in Firefox
             env.allowLocalModels = true
         }
 
