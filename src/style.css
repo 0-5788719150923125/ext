@@ -30,17 +30,17 @@ h2 {
 }
 
 .input-container {
-  width: 22rem;
+  width: 360px;
   max-width: 100%;
   margin-bottom: 20px;
 }
 
 .container {
-  /* width: 16rem; */
+  width: 360px;
   max-width: 100%;
-  padding: 1rem;
+  padding: 20px;
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 20px;
   overflow-y: auto;
   max-height: calc(100vh - 200px);
   position: relative;
@@ -57,8 +57,8 @@ h2 {
 
 html,
 body {
-  min-width: 26rem;
-  min-height: 33rem;
+  min-width: 400px;
+  min-height: 500px;
   height: 100%;
 }
 

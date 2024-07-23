@@ -87,15 +87,12 @@ function remToPixels(rem) {
 // Pin the popup window
 const persistButton = document.getElementById('persist')
 persistButton.addEventListener('click', () => {
-    const widthInPixels = Math.round(remToPixels(26))
-    const heightInPixels = Math.round(remToPixels(33))
-
     chrome.windows.create({
         url: 'popup.html',
         type: 'popup',
         focused: true,
-        width: widthInPixels,
-        height: heightInPixels
+        width: 400,
+        height: 500
     })
 })
 
