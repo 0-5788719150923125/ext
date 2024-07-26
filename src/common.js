@@ -73,6 +73,7 @@ export function eventHandler(event) {
         sendToForeground('floatLeft')
     } else if (event.data.action === 'toTopic') {
         sendToForeground('toTopic', event.data.label)
+        sendToBackground('changeChannel', event.data.label.toLowerCase())
     } else if (event.data.status === 'partial') {
         sendToForeground('floatRight')
         sendToForeground('toInputField', event.data.input + '//:dst')

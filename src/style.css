@@ -57,8 +57,8 @@ h2 {
 
 html,
 body {
-  min-width: 400px;
-  min-height: 500px;
+  min-width: 26rem;
+  min-height: 33rem;
   height: 100%;
 }
 

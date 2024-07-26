@@ -102,7 +102,7 @@ function sendMessage(data) {
 
 let isRunning = false
 let isInferencing = false
-export async function doInference(data, returnRouter = false) {
+export async function doInference(data, returnViaRouter = false) {
     try {
         if (isRunning) return
         isRunning = true
@@ -115,11 +115,17 @@ export async function doInference(data, returnRouter = false) {
         }
 
         // Get the pipeline instance. This will load and build the model when run for the first time.
-        let output = await classify(prompt)
+        let topic = cleanPrediction(await classify(prompt))
         sendMessage({
             action: 'toTopic',
-            label: cleanPrediction(output)
+            label: topic
         })
+        if (returnViaRouter) {
+            ev.emit('toRouter', {
+                action: 'changeChannel',
+                data: topic
+            })
+        }
 
         const roll = Math.random()
         if (roll >= generatorOptions.frequency) {
@@ -187,7 +193,7 @@ export async function doInference(data, returnRouter = false) {
 
             if (shouldReturn) {
                 sendMessage({ status: 'complete', output })
-                if (returnRouter) {
+                if (returnViaRouter) {
                     ev.emit('toRouter', {
                         action: 'toDatabase',
                         data: output

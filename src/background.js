@@ -3,6 +3,7 @@ import Gun from './book.js'
 import ev from './events.js'
 import { doInference } from './inference.js'
 import {
+    delay,
     eventHandler,
     getSavedOption,
     hasLongWord,
@@ -41,13 +42,20 @@ class ContextHandler {
 const context = new ContextHandler()
 
 let gun = new Gun()
-gun.subscribe('trade').on(async (node) => {
-    if (['null', 'undefined'].includes(typeof node)) return
-    const message = JSON.parse(node).message
-    if (hasLongWord(message, 20)) return
-    context.add(message)
-    sendToForeground('toOutputField', message)
-})
+let channel = null
+
+async function setGunChannel(gun, channel, newChannel = 'trade') {
+    channel = gun.subscribe(newChannel).on(async (node) => {
+        if (['null', 'undefined'].includes(typeof node)) return
+        const message = JSON.parse(node).message
+        if (hasLongWord(message, 20)) return
+        context.add(message)
+        sendToForeground('toOutputField', message)
+    })
+    return channel
+}
+
+channel = await setGunChannel(gun, channel, 'trade')
 
 let offscreenDocument = null
 let offscreenDocumentCreated = false
@@ -127,7 +135,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'fromUser') {
         ev.emit('toRouter', message)
     } else if (!chrome.offscreen) {
-        if (message.action === 'toDatabase') {
+        if (['toDatabase', 'changeChannel'].includes(message.action)) {
             ev.emit('toRouter', message)
         } else {
             ev.emit('toRouter', message.data)
@@ -135,13 +143,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 })
 
-ev.on('toRouter', (event) => {
-    router(event.detail)
+ev.on('toRouter', async (event) => {
+    await router(event.detail)
 })
 
 const messageCache = []
 
-function router(detail) {
+async function router(detail) {
     switch (detail?.action) {
         case 'fromUser':
         case 'toDatabase':
@@ -153,6 +161,16 @@ function router(detail) {
             while (messageCache.length > 50) {
                 messageCache.shift()
             }
+            break
+        case 'changeChannel':
+            console.log(`(not) changing channel to:`, detail.data)
+            // await channel.off()
+            // await delay(2000)
+            // channel = await setGunChannel(
+            //     gun,
+            //     channel,
+            //     detail.data.toLowerCase()
+            // )
             break
         case 'toLogger':
             console.log(detail.data)
